@@ -65,7 +65,7 @@ function initParticles() {
     }
 
     resize();
-    window.addEventListener('resize', debouncedResize);
+    window.addEventListener('resize', debouncedResize, { passive: true });
 
     // Only track mouse on non-touch devices
     if (!isTouch) {
@@ -190,7 +190,7 @@ function initNavbar() {
     const toggle = document.getElementById('nav-toggle');
     const menu = document.getElementById('nav-menu');
 
-    // Scroll effect
+    // Scroll effect (passive for better performance)
     let lastScroll = 0;
     window.addEventListener('scroll', () => {
         const currentScroll = window.scrollY;
@@ -202,7 +202,7 @@ function initNavbar() {
         }
 
         lastScroll = currentScroll;
-    });
+    }, { passive: true });
 
     // Mobile toggle
     if (toggle && menu) {

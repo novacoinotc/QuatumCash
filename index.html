@@ -6,6 +6,7 @@
     <title>QuantumCash | La operadora P2P #1 de Mexico</title>
     <meta name="description" content="QuantumCash - Exchange de criptomonedas profesional. La cuenta P2P mas grande de Mexico. Compra y vende crypto con los mejores precios, rapidez y seguridad. Operadora oficial de NovaCoin.">
     <meta name="keywords" content="QuantumCash, crypto, P2P, Mexico, Bitcoin, USDT, exchange, NovaCoin, criptomonedas">
+    <meta name="theme-color" content="#0B0D17">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -350,29 +351,103 @@
                     </div>
                 </div>
                 <div class="about-visual animate-on-scroll">
-                    <div class="about-card-stack">
-                        <div class="floating-card card-1">
-                            <div class="card-crypto">
-                                <span class="crypto-symbol">BTC</span>
-                                <span class="crypto-price">$1,680,000 MXN</span>
-                            </div>
-                            <div class="card-status">
-                                <span class="status-dot"></span> En linea
-                            </div>
+                    <div class="phone-mockup-wrapper">
+                        <!-- Glow behind phone -->
+                        <div class="phone-glow"></div>
+
+                        <!-- Connecting lines SVG -->
+                        <svg class="phone-connect-lines" viewBox="0 0 500 500" fill="none">
+                            <line x1="60" y1="180" x2="150" y2="220" stroke="#A78BFA" stroke-width="0.6" stroke-dasharray="4 6" opacity="0.25"/>
+                            <line x1="440" y1="160" x2="350" y2="200" stroke="#F472B6" stroke-width="0.6" stroke-dasharray="4 6" opacity="0.2"/>
+                            <line x1="250" y1="460" x2="250" y2="400" stroke="#818CF8" stroke-width="0.6" stroke-dasharray="4 6" opacity="0.2"/>
+                            <circle cx="105" cy="200" r="1.5" fill="#A78BFA" opacity="0.4"/>
+                            <circle cx="395" cy="180" r="1.5" fill="#F472B6" opacity="0.35"/>
+                        </svg>
+
+                        <!-- Orbiting icons -->
+                        <div class="phone-orbit-icon orbit-btc">
+                            <span>&#8383;</span>
                         </div>
-                        <div class="floating-card card-2">
-                            <div class="card-crypto">
-                                <span class="crypto-symbol">USDT</span>
-                                <span class="crypto-price">$20.45 MXN</span>
-                            </div>
-                            <div class="card-badge">Mejor Precio</div>
+                        <div class="phone-orbit-icon orbit-menu">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <line x1="3" y1="12" x2="21" y2="12"/>
+                                <line x1="3" y1="18" x2="21" y2="18"/>
+                            </svg>
                         </div>
-                        <div class="floating-card card-3">
-                            <div class="card-crypto">
-                                <span class="crypto-symbol">ETH</span>
-                                <span class="crypto-price">$54,200 MXN</span>
+                        <div class="phone-orbit-icon orbit-dollar">
+                            <span>$</span>
+                        </div>
+                        <div class="phone-orbit-icon orbit-check">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+
+                        <!-- Phone frame -->
+                        <div class="phone-frame">
+                            <!-- Status bar -->
+                            <div class="phone-statusbar">
+                                <span>9:41</span>
+                                <span class="phone-battery">
+                                    <svg width="20" height="10" viewBox="0 0 24 12" fill="currentColor" opacity="0.5">
+                                        <rect x="0" y="1" width="20" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                                        <rect x="2" y="3" width="14" height="6" rx="1" fill="currentColor"/>
+                                        <rect x="21" y="3.5" width="2" height="5" rx="1" fill="currentColor"/>
+                                    </svg>
+                                </span>
                             </div>
-                            <div class="card-action">Comprar &rarr;</div>
+                            <!-- App header -->
+                            <div class="phone-app-header">
+                                <span class="phone-app-name">QuantumCash</span>
+                                <span class="phone-app-tab">Exchange</span>
+                            </div>
+                            <!-- Chart area -->
+                            <div class="phone-chart">
+                                <span class="phone-chart-badge">+12.4%</span>
+                                <svg class="phone-chart-svg" viewBox="0 0 260 80" fill="none" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="chart-fill-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.3"/>
+                                            <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0,65 C20,62 40,58 65,55 C90,52 110,50 130,42 C150,34 170,38 190,30 C210,22 230,15 250,10 L260,8" stroke="url(#hex-hub-grad)" stroke-width="2" fill="none"/>
+                                    <path d="M0,65 C20,62 40,58 65,55 C90,52 110,50 130,42 C150,34 170,38 190,30 C210,22 230,15 250,10 L260,8 L260,80 L0,80 Z" fill="url(#chart-fill-grad)"/>
+                                    <circle cx="250" cy="10" r="4" fill="#A78BFA"/>
+                                    <circle cx="250" cy="10" r="7" stroke="#A78BFA" stroke-width="1" fill="none" opacity="0.3"/>
+                                </svg>
+                            </div>
+                            <!-- Crypto list -->
+                            <div class="phone-crypto-list">
+                                <div class="phone-crypto-row">
+                                    <span class="phone-crypto-icon" style="background: rgba(244,163,58,0.15); color: #F4A33A;">&#8383;</span>
+                                    <span class="phone-crypto-name">BTC</span>
+                                    <span class="phone-crypto-val">$1,680,000</span>
+                                    <span class="phone-crypto-change positive">+3.2%</span>
+                                </div>
+                                <div class="phone-crypto-row">
+                                    <span class="phone-crypto-icon" style="background: rgba(129,140,248,0.15); color: #818CF8;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.75l-6.25 10.5h4.5L8.5 22.25 18.25 11h-4.5l2-9.25z"/></svg>
+                                    </span>
+                                    <span class="phone-crypto-name">ETH</span>
+                                    <span class="phone-crypto-val">$54,200</span>
+                                    <span class="phone-crypto-change positive">+1.8%</span>
+                                </div>
+                                <div class="phone-crypto-row">
+                                    <span class="phone-crypto-icon" style="background: rgba(34,197,94,0.15); color: #22C55E;">$</span>
+                                    <span class="phone-crypto-name">USDT</span>
+                                    <span class="phone-crypto-val">$20.45</span>
+                                    <span class="phone-crypto-change neutral">~0.0%</span>
+                                </div>
+                            </div>
+                            <!-- Action buttons -->
+                            <div class="phone-actions">
+                                <button class="phone-btn phone-btn-buy">Comprar</button>
+                                <button class="phone-btn phone-btn-sell">Vender</button>
+                            </div>
+                            <!-- Bottom bar -->
+                            <div class="phone-home-bar"></div>
                         </div>
                     </div>
                 </div>
@@ -545,6 +620,86 @@
                     Soluciones integrales respaldadas por la tecnologia de NovaCoin.
                 </p>
             </div>
+
+            <!-- P2P Exchange Flow Illustration -->
+            <div class="exchange-flow animate-on-scroll">
+                <!-- Orbital paths SVG (background) -->
+                <svg class="exchange-flow-orbits" viewBox="0 0 800 200" fill="none" preserveAspectRatio="xMidYMid meet">
+                    <!-- Upper elliptical path -->
+                    <ellipse cx="400" cy="100" rx="320" ry="60" stroke="url(#flow-path-grad)" stroke-width="0.8" stroke-dasharray="6 8" opacity="0.2"/>
+                    <!-- Lower elliptical path -->
+                    <ellipse cx="400" cy="100" rx="280" ry="45" stroke="url(#flow-path-grad2)" stroke-width="0.6" stroke-dasharray="4 10" opacity="0.12"/>
+                    <!-- Arrow indicators -->
+                    <polygon points="135,76 125,72 128,82" fill="#A78BFA" opacity="0.4"/>
+                    <polygon points="665,124 675,128 672,118" fill="#F472B6" opacity="0.4"/>
+                    <!-- Traveling dots -->
+                    <circle class="flow-dot flow-dot-1" r="3" fill="#A78BFA" opacity="0.6"/>
+                    <circle class="flow-dot flow-dot-2" r="2.5" fill="#F472B6" opacity="0.5"/>
+                    <circle class="flow-dot flow-dot-3" r="2" fill="#818CF8" opacity="0.4"/>
+                    <defs>
+                        <linearGradient id="flow-path-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#818CF8" stop-opacity="0"/>
+                            <stop offset="30%" stop-color="#A78BFA"/>
+                            <stop offset="70%" stop-color="#F472B6"/>
+                            <stop offset="100%" stop-color="#EC4899" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="flow-path-grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#EC4899" stop-opacity="0"/>
+                            <stop offset="50%" stop-color="#7C3AED"/>
+                            <stop offset="100%" stop-color="#818CF8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                <!-- Left: MXN Card -->
+                <div class="flow-card flow-card-left">
+                    <div class="flow-card-icon flow-icon-mxn">
+                        <span>$</span>
+                    </div>
+                    <div class="flow-card-info">
+                        <strong>MXN</strong>
+                        <span>Pesos</span>
+                    </div>
+                </div>
+
+                <!-- Center: Hexagon Hub -->
+                <div class="flow-center">
+                    <div class="flow-hex-glow"></div>
+                    <svg class="flow-hexagon" viewBox="0 0 120 120" fill="none">
+                        <polygon points="60,5 110,30 110,90 60,115 10,90 10,30" stroke="url(#hex-hub-grad)" stroke-width="1.5" fill="rgba(124,58,237,0.06)"/>
+                        <polygon points="60,25 90,40 90,80 60,95 30,80 30,40" stroke="url(#hex-hub-grad)" stroke-width="0.8" fill="rgba(124,58,237,0.04)" opacity="0.6"/>
+                        <polygon points="60,40 75,48 75,72 60,80 45,72 45,48" fill="url(#hex-hub-center)" opacity="0.8"/>
+                        <defs>
+                            <linearGradient id="hex-hub-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#818CF8"/>
+                                <stop offset="50%" stop-color="#A78BFA"/>
+                                <stop offset="100%" stop-color="#F472B6"/>
+                            </linearGradient>
+                            <linearGradient id="hex-hub-center" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#7C3AED"/>
+                                <stop offset="100%" stop-color="#4F46E5"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <!-- Orbiting mini dots -->
+                    <div class="flow-orbit-dot flow-orbit-dot-1"></div>
+                    <div class="flow-orbit-dot flow-orbit-dot-2"></div>
+                    <div class="flow-orbit-dot flow-orbit-dot-3"></div>
+                    <span class="flow-label">Intercambio instantaneo</span>
+                </div>
+
+                <!-- Right: CRYPTO Card -->
+                <div class="flow-card flow-card-right">
+                    <div class="flow-card-icon flow-icon-btc">
+                        <span>&#8383;</span>
+                    </div>
+                    <div class="flow-card-info">
+                        <strong>CRYPTO</strong>
+                        <span>Bitcoin</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="services-grid">
                 <!-- Service 1: Exchange P2P -->
                 <div class="service-card animate-on-scroll">
@@ -887,46 +1042,112 @@
             </defs>
         </svg>
         <div class="container">
-            <div class="contact-content animate-on-scroll">
-                <span class="section-label">Comienza Hoy</span>
-                <h2 class="section-title">
-                    Lista para hacer tu<br>
-                    <span class="gradient-text">proxima operacion?</span>
-                </h2>
-                <p class="contact-text">
-                    Escribeme directamente por WhatsApp y recibe una cotizacion personalizada
-                    en menos de 2 minutos. Sin compromisos, sin letras chiquitas.
-                </p>
-                <div class="contact-buttons">
-                    <a href="https://wa.me/message/3JXVRLZZG3E2K1" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                        </svg>
-                        Escribeme por WhatsApp
-                    </a>
-                    <a href="https://www.novacoin.mx" class="btn btn-outline btn-lg" target="_blank" rel="noopener">
-                        Conocer NovaCoin
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                            <polyline points="15 3 21 3 21 9"/>
-                            <line x1="10" y1="14" x2="21" y2="3"/>
-                        </svg>
-                    </a>
-                </div>
-                <div class="contact-info">
-                    <div class="contact-info-item">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                            <polyline points="22,6 12,13 2,6"/>
-                        </svg>
-                        contacto@quantumcash.mx
+            <div class="contact-grid">
+                <div class="contact-content animate-on-scroll">
+                    <span class="section-label">Comienza Hoy</span>
+                    <h2 class="section-title">
+                        Lista para hacer tu<br>
+                        <span class="gradient-text">proxima operacion?</span>
+                    </h2>
+                    <p class="contact-text">
+                        Escribeme directamente por WhatsApp y recibe una cotizacion personalizada
+                        en menos de 2 minutos. Sin compromisos, sin letras chiquitas.
+                    </p>
+                    <div class="contact-buttons">
+                        <a href="https://wa.me/message/3JXVRLZZG3E2K1" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                            </svg>
+                            Escribeme por WhatsApp
+                        </a>
+                        <a href="https://www.novacoin.mx" class="btn btn-outline btn-lg" target="_blank" rel="noopener">
+                            Conocer NovaCoin
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                        </a>
                     </div>
-                    <div class="contact-info-item">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        Mexico
+                    <div class="contact-info">
+                        <div class="contact-info-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            contacto@quantumcash.mx
+                        </div>
+                        <div class="contact-info-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Mexico
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Mockup Illustration -->
+                <div class="contact-visual animate-on-scroll">
+                    <div class="chat-mockup-wrapper">
+                        <div class="chat-glow"></div>
+                        <!-- Floating badge icons -->
+                        <div class="chat-badge-icon chat-badge-fast">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </div>
+                        <div class="chat-badge-icon chat-badge-lock">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="chat-badge-icon chat-badge-check">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+
+                        <!-- Chat window -->
+                        <div class="chat-window">
+                            <!-- Chat header -->
+                            <div class="chat-header">
+                                <div class="chat-avatar">Q</div>
+                                <div class="chat-header-info">
+                                    <span class="chat-header-name">QuantumCash</span>
+                                    <span class="chat-header-status"><span class="chat-online-dot"></span> En linea</span>
+                                </div>
+                            </div>
+                            <!-- Chat messages -->
+                            <div class="chat-messages">
+                                <div class="chat-msg chat-msg-user">
+                                    <div class="chat-bubble chat-bubble-user">
+                                        Hola! Quiero comprar 500 USDT
+                                    </div>
+                                    <span class="chat-time">11:42</span>
+                                </div>
+                                <div class="chat-msg chat-msg-qc">
+                                    <div class="chat-bubble chat-bubble-qc">
+                                        Hola! Claro, tu cotizacion:<br>
+                                        <strong>500 USDT = $10,225 MXN</strong><br>
+                                        <span class="chat-small">Deposita via SPEI y en 7 min tienes tu crypto</span>
+                                    </div>
+                                    <span class="chat-time">11:42</span>
+                                </div>
+                                <div class="chat-msg chat-msg-user">
+                                    <div class="chat-bubble chat-bubble-user">
+                                        Listo, ya hice la transferencia
+                                    </div>
+                                    <span class="chat-time">11:44</span>
+                                </div>
+                                <div class="chat-msg chat-msg-qc">
+                                    <div class="chat-bubble chat-bubble-confirm">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        Operacion completada &mdash; 500 USDT enviados
+                                    </div>
+                                    <span class="chat-time">11:45</span>
+                                </div>
+                            </div>
+                            <!-- Chat input -->
+                            <div class="chat-input">
+                                <span>Escribe un mensaje...</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" opacity="0.3"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

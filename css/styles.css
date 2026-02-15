@@ -144,6 +144,15 @@ img {
     position: relative;
 }
 
+/* Below-fold sections: skip rendering until near viewport */
+.section-stats,
+.section-services,
+.section-why,
+.section-contact {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
+}
+
 /* ---- Buttons ---- */
 .btn {
     display: inline-flex;
@@ -162,6 +171,7 @@ img {
     position: relative;
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 .btn-primary {
@@ -278,6 +288,7 @@ img {
     padding: 8px 16px;
     border-radius: 8px;
     transition: all var(--transition-fast);
+    touch-action: manipulation;
 }
 
 .nav-link:hover {
@@ -567,112 +578,295 @@ img {
     color: var(--gray-500);
 }
 
-/* Floating Cards */
+/* ============================================
+   PHONE MOCKUP ILLUSTRATION
+   ============================================ */
 .about-visual {
     position: relative;
-    height: clamp(320px, 40vw, 450px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 480px;
 }
 
-.about-card-stack {
+.phone-mockup-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.phone-glow {
+    position: absolute;
+    width: 300px;
+    height: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, rgba(236,72,153,0.06) 40%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.phone-connect-lines {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Phone frame */
+.phone-frame {
+    position: relative;
+    z-index: 2;
+    width: 260px;
+    background: var(--dark-card);
+    border: 1.5px solid rgba(167, 139, 250, 0.25);
+    border-radius: 28px;
+    padding: 12px 16px 10px;
+    box-shadow: 0 0 60px rgba(124,58,237,0.08), 0 0 120px rgba(236,72,153,0.04);
+    overflow: hidden;
+}
+
+.phone-frame::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 28px;
+    padding: 1.5px;
+    background: linear-gradient(160deg, rgba(167,139,250,0.3), rgba(124,58,237,0.1), rgba(236,72,153,0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.phone-statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-primary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-400);
+    padding: 4px 4px 8px;
+}
+
+.phone-app-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 0 4px 12px;
+}
+
+.phone-app-name {
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.phone-app-tab {
+    font-family: var(--font-primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--purple-light);
+}
+
+/* Chart */
+.phone-chart {
+    position: relative;
+    background: rgba(11, 13, 23, 0.6);
+    border: 1px solid var(--dark-border);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 14px;
+    height: 100px;
+    overflow: hidden;
+}
+
+.phone-chart-svg {
     width: 100%;
     height: 100%;
 }
 
-.floating-card {
+.phone-chart-badge {
     position: absolute;
-    background: var(--dark-card);
-    border: 1px solid var(--dark-border);
-    border-radius: 16px;
-    padding: 24px;
-    backdrop-filter: blur(20px);
-    transition: transform var(--transition-spring);
-    width: clamp(200px, 22vw, 280px);
-}
-
-.floating-card:hover {
-    transform: translateY(-8px) !important;
-}
-
-.card-1 {
-    top: 10%;
-    right: 5%;
-    animation: float-card 6s ease-in-out infinite;
-}
-
-.card-2 {
-    top: 40%;
-    left: 0;
-    animation: float-card 7s ease-in-out infinite 1s;
-}
-
-.card-3 {
-    bottom: 5%;
-    right: 10%;
-    animation: float-card 8s ease-in-out infinite 2s;
-}
-
-@keyframes float-card {
-    0%, 100% { transform: translate3d(0, 0, 0); }
-    50% { transform: translate3d(0, -12px, 0); }
-}
-
-.card-crypto {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.crypto-symbol {
+    top: 8px;
+    right: 8px;
     font-family: var(--font-primary);
-    font-size: 1.1rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    color: var(--white);
-    padding: 4px 12px;
-    border-radius: 8px;
-    background: rgba(124, 58, 237, 0.15);
+    color: #22C55E;
+    background: rgba(34, 197, 94, 0.12);
+    padding: 2px 8px;
+    border-radius: 6px;
+    z-index: 1;
 }
 
-.crypto-price {
-    font-family: var(--font-primary);
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--gray-300);
-}
-
-.card-status {
+/* Crypto list */
+.phone-crypto-list {
     display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 14px;
+}
+
+.phone-crypto-row {
+    display: grid;
+    grid-template-columns: 28px 36px 1fr auto;
     align-items: center;
     gap: 8px;
-    font-size: 0.85rem;
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(30, 32, 68, 0.5);
+}
+
+.phone-crypto-row:last-child {
+    border-bottom: none;
+}
+
+.phone-crypto-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.phone-crypto-name {
+    font-family: var(--font-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.phone-crypto-val {
+    font-family: var(--font-primary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--gray-300);
+    text-align: right;
+}
+
+.phone-crypto-change {
+    font-family: var(--font-primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.phone-crypto-change.positive {
+    color: #22C55E;
+}
+
+.phone-crypto-change.neutral {
     color: var(--gray-500);
 }
 
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #22C55E;
+/* Action buttons */
+.phone-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
-.card-badge {
-    display: inline-block;
+.phone-btn {
+    font-family: var(--font-primary);
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--pink-light);
-    padding: 4px 12px;
-    border-radius: 6px;
-    background: rgba(236, 72, 153, 0.1);
-    border: 1px solid rgba(236, 72, 153, 0.2);
+    padding: 10px 0;
+    border-radius: 10px;
+    border: none;
+    cursor: default;
 }
 
-.card-action {
-    font-family: var(--font-primary);
-    font-size: 0.88rem;
-    font-weight: 600;
+.phone-btn-buy {
+    background: var(--gradient-primary);
+    color: var(--white);
+}
+
+.phone-btn-sell {
+    background: transparent;
+    color: var(--gray-300);
+    border: 1px solid var(--dark-border);
+}
+
+.phone-home-bar {
+    width: 40%;
+    height: 4px;
+    background: var(--gray-600);
+    border-radius: 4px;
+    margin: 6px auto 2px;
+    opacity: 0.5;
+}
+
+/* Orbiting icons around phone */
+.phone-orbit-icon {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    font-weight: 700;
+    will-change: transform;
+}
+
+.orbit-btc {
+    left: -50px;
+    top: 25%;
+    background: rgba(244,163,58,0.1);
+    border: 1px solid rgba(244,163,58,0.25);
+    color: #F4A33A;
+    font-size: 1.2rem;
+    animation: float-orbit 5s ease-in-out infinite;
+}
+
+.orbit-menu {
+    right: -50px;
+    top: 30%;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: var(--purple-light);
+    animation: float-orbit 6s ease-in-out infinite 1s;
+}
+
+.orbit-dollar {
+    left: -40px;
+    bottom: 20%;
+    background: rgba(129,140,248,0.1);
+    border: 1px solid rgba(129,140,248,0.2);
     color: var(--blue-light);
-    cursor: pointer;
+    font-size: 1.1rem;
+    width: 38px;
+    height: 38px;
+    animation: float-orbit 7s ease-in-out infinite 2s;
+}
+
+.orbit-check {
+    right: -45px;
+    bottom: 25%;
+    background: rgba(244,114,182,0.1);
+    border: 1px solid rgba(244,114,182,0.2);
+    color: var(--pink-light);
+    width: 38px;
+    height: 38px;
+    animation: float-orbit 5.5s ease-in-out infinite 0.5s;
+}
+
+@keyframes float-orbit {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 /* ============================================
@@ -866,6 +1060,185 @@ img {
 }
 
 /* ============================================
+   P2P EXCHANGE FLOW ILLUSTRATION
+   ============================================ */
+.exchange-flow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 60px 0 80px;
+    min-height: 240px;
+}
+
+.exchange-flow-orbits {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Traveling dots animation along elliptical path */
+.flow-dot-1 {
+    offset-path: ellipse(320px 60px at 50% 50%);
+    animation: flow-travel 8s linear infinite;
+}
+
+.flow-dot-2 {
+    offset-path: ellipse(280px 45px at 50% 50%);
+    animation: flow-travel 6s linear infinite reverse;
+}
+
+.flow-dot-3 {
+    offset-path: ellipse(320px 60px at 50% 50%);
+    animation: flow-travel 8s linear infinite;
+    animation-delay: -4s;
+}
+
+@keyframes flow-travel {
+    from { offset-distance: 0%; }
+    to { offset-distance: 100%; }
+}
+
+/* Flow cards (MXN / CRYPTO) */
+.flow-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 28px;
+    background: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    border-radius: 16px;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+}
+
+.flow-card-left {
+    border-color: rgba(129, 140, 248, 0.2);
+    background: linear-gradient(135deg, rgba(17,19,40,0.9) 0%, rgba(79,70,229,0.08) 100%);
+}
+
+.flow-card-right {
+    border-color: rgba(244, 114, 182, 0.2);
+    background: linear-gradient(135deg, rgba(236,72,153,0.06) 0%, rgba(17,19,40,0.9) 100%);
+}
+
+.flow-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.flow-icon-mxn {
+    background: rgba(129, 140, 248, 0.12);
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    color: var(--blue-light);
+}
+
+.flow-icon-btc {
+    background: rgba(244, 114, 182, 0.12);
+    border: 1px solid rgba(244, 114, 182, 0.25);
+    color: var(--pink-light);
+    font-size: 1.6rem;
+}
+
+.flow-card-info strong {
+    display: block;
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.flow-card-info span {
+    font-size: 0.82rem;
+    color: var(--gray-500);
+}
+
+/* Center hexagon hub */
+.flow-center {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 40px;
+}
+
+.flow-hexagon {
+    width: 100px;
+    height: 100px;
+}
+
+.flow-hex-glow {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
+    pointer-events: none;
+    animation: hex-pulse 3s ease-in-out infinite;
+}
+
+@keyframes hex-pulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -60%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+}
+
+.flow-label {
+    font-family: var(--font-primary);
+    font-size: 0.78rem;
+    color: var(--gray-500);
+    letter-spacing: 1px;
+    margin-top: 12px;
+    text-transform: lowercase;
+}
+
+/* Orbiting mini dots around hexagon */
+.flow-orbit-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    will-change: transform;
+}
+
+.flow-orbit-dot-1 {
+    background: var(--blue-light);
+    animation: orbit-hex 6s linear infinite;
+}
+
+.flow-orbit-dot-2 {
+    background: var(--pink-light);
+    animation: orbit-hex 8s linear infinite reverse;
+}
+
+.flow-orbit-dot-3 {
+    background: var(--purple-light);
+    animation: orbit-hex 5s linear infinite;
+    animation-delay: -2.5s;
+}
+
+@keyframes orbit-hex {
+    0% { top: -10px; left: 50%; transform: translateX(-50%); }
+    25% { top: 40%; left: calc(100% + 15px); transform: translateX(0); }
+    50% { top: calc(80%); left: 50%; transform: translateX(-50%); }
+    75% { top: 40%; left: -15px; transform: translateX(0); }
+    100% { top: -10px; left: 50%; transform: translateX(-50%); }
+}
+
+/* ============================================
    WHY SECTION
    ============================================ */
 .section-why {
@@ -937,7 +1310,7 @@ img {
    CONTACT SECTION
    ============================================ */
 .section-contact {
-    text-align: center;
+    text-align: left;
     position: relative;
     overflow: hidden;
 }
@@ -951,33 +1324,36 @@ img {
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(40px, 5vw, 80px);
+    align-items: center;
 }
 
 .contact-content {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 500px;
 }
 
 .contact-text {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     color: var(--gray-400);
-    margin-bottom: 40px;
+    margin-bottom: 36px;
     line-height: 1.8;
 }
 
 .contact-buttons {
     display: flex;
     gap: 16px;
-    justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 48px;
+    margin-bottom: 40px;
 }
 
 .contact-info {
     display: flex;
-    gap: 32px;
-    justify-content: center;
+    gap: 28px;
     flex-wrap: wrap;
 }
 
@@ -991,6 +1367,224 @@ img {
 
 .contact-info-item svg {
     color: var(--purple-light);
+}
+
+/* Chat Mockup */
+.contact-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-mockup-wrapper {
+    position: relative;
+}
+
+.chat-glow {
+    position: absolute;
+    width: 280px;
+    height: 350px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, rgba(236,72,153,0.05) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+.chat-window {
+    position: relative;
+    z-index: 2;
+    width: 300px;
+    background: var(--dark-card);
+    border: 1.5px solid rgba(167, 139, 250, 0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(124,58,237,0.06), 0 0 100px rgba(236,72,153,0.03);
+}
+
+.chat-window::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 20px;
+    padding: 1.5px;
+    background: linear-gradient(160deg, rgba(167,139,250,0.25), rgba(124,58,237,0.08), rgba(236,72,153,0.15));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--dark-border);
+    background: rgba(11, 13, 23, 0.5);
+}
+
+.chat-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-primary);
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--white);
+}
+
+.chat-header-name {
+    font-family: var(--font-primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--white);
+    display: block;
+}
+
+.chat-header-status {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-online-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22C55E;
+    display: inline-block;
+}
+
+.chat-messages {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-msg {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-msg-user {
+    align-items: flex-end;
+}
+
+.chat-msg-qc {
+    align-items: flex-start;
+}
+
+.chat-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.chat-bubble-user {
+    background: rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    color: var(--gray-300);
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble-qc {
+    background: rgba(17, 19, 40, 0.8);
+    border: 1px solid var(--dark-border);
+    color: var(--gray-300);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-bubble-qc strong {
+    color: var(--white);
+    font-weight: 600;
+}
+
+.chat-small {
+    font-size: 0.72rem;
+    color: var(--gray-500);
+}
+
+.chat-bubble-confirm {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: #22C55E;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.chat-bubble-confirm svg {
+    color: #22C55E;
+    flex-shrink: 0;
+}
+
+.chat-time {
+    font-size: 0.62rem;
+    color: var(--gray-600);
+    margin-top: 3px;
+    padding: 0 4px;
+}
+
+.chat-input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--dark-border);
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+/* Chat floating badge icons */
+.chat-badge-icon {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    will-change: transform;
+}
+
+.chat-badge-fast {
+    top: 15%;
+    left: -30px;
+    background: rgba(244,163,58,0.1);
+    border: 1px solid rgba(244,163,58,0.2);
+    color: #F4A33A;
+    animation: float-orbit 6s ease-in-out infinite;
+}
+
+.chat-badge-lock {
+    top: 30%;
+    right: -30px;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: var(--purple-light);
+    animation: float-orbit 5s ease-in-out infinite 1s;
+}
+
+.chat-badge-check {
+    bottom: 15%;
+    right: -25px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.2);
+    color: #22C55E;
+    animation: float-orbit 7s ease-in-out infinite 2s;
 }
 
 /* ============================================
@@ -1219,26 +1813,12 @@ img {
     }
 
     .about-visual {
-        height: 300px;
+        min-height: 380px;
         order: -1;
     }
 
     .about-text {
         font-size: 1rem;
-    }
-
-    .floating-card {
-        width: 200px;
-        padding: 18px;
-    }
-
-    .crypto-price {
-        font-size: 0.85rem;
-    }
-
-    .crypto-symbol {
-        font-size: 1rem;
-        padding: 3px 10px;
     }
 
     /* Stats */
@@ -1297,6 +1877,19 @@ img {
     }
 
     /* Contact */
+    .section-contact {
+        text-align: center;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .contact-content {
+        max-width: 100%;
+    }
+
     .contact-text {
         font-size: 1rem;
     }
@@ -1313,7 +1906,21 @@ img {
 
     .contact-info {
         flex-direction: column;
+        align-items: center;
         gap: 12px;
+    }
+
+    /* Chat mockup mobile */
+    .chat-window {
+        width: 270px;
+    }
+
+    .chat-badge-icon {
+        display: none;
+    }
+
+    .chat-glow {
+        display: none;
     }
 
     /* Footer */
@@ -1379,32 +1986,47 @@ img {
         gap: 12px;
     }
 
-    /* About cards */
+    /* Phone mockup smaller */
     .about-visual {
-        height: 260px;
+        min-height: 340px;
     }
 
-    .floating-card {
-        width: 180px;
-        padding: 14px;
-        border-radius: 12px;
+    .phone-mockup-wrapper {
+        transform: scale(0.78);
+        transform-origin: center top;
     }
 
-    .crypto-symbol {
+    /* Exchange flow smaller */
+    .exchange-flow {
+        padding: 24px 0 40px;
+    }
+
+    .flow-card {
+        padding: 12px 16px;
+        max-width: 180px;
+    }
+
+    .flow-card-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
+
+    .flow-icon-btc {
+        font-size: 1.1rem;
+    }
+
+    .flow-card-info strong {
         font-size: 0.88rem;
-        padding: 2px 8px;
     }
 
-    .crypto-price {
-        font-size: 0.78rem;
+    .flow-card-info span {
+        font-size: 0.75rem;
     }
 
-    .card-badge {
-        font-size: 0.72rem;
-    }
-
-    .card-status {
-        font-size: 0.78rem;
+    .flow-hexagon {
+        width: 56px;
+        height: 56px;
     }
 
     /* Footer stacked */
@@ -1425,6 +2047,15 @@ img {
 
     .why-number {
         font-size: 1.3rem;
+    }
+
+    /* Chat mockup smaller */
+    .chat-window {
+        width: 260px;
+    }
+
+    .chat-bubble {
+        font-size: 0.72rem;
     }
 
     /* Contact buttons full width */
@@ -2025,10 +2656,23 @@ img {
     }
 
     /* Kill all CSS animations on mobile */
-    .floating-card,
     .circuit-left,
     .circuit-right,
     .geo-shape {
+        animation: none !important;
+    }
+
+    /* Illustrations: no animations on mobile */
+    .flow-orbit-dot,
+    .flow-dot {
+        animation: none !important;
+    }
+
+    .phone-orbit-icon {
+        animation: none !important;
+    }
+
+    .flow-hex-glow {
         animation: none !important;
     }
 
@@ -2043,6 +2687,75 @@ img {
     .contact-glow {
         opacity: 0.5;
         animation: none !important;
+    }
+
+    /* Exchange flow illustration */
+    .exchange-flow {
+        flex-direction: column;
+        gap: 24px;
+        padding: 40px 0 60px;
+    }
+
+    .exchange-flow-orbits {
+        display: none;
+    }
+
+    .flow-center {
+        padding: 0;
+        order: -1;
+    }
+
+    .flow-hexagon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .flow-hex-glow {
+        width: 100px;
+        height: 100px;
+        animation: none;
+    }
+
+    .flow-orbit-dot {
+        display: none;
+    }
+
+    .flow-card {
+        padding: 16px 20px;
+        width: 100%;
+        max-width: 220px;
+    }
+
+    .flow-card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .flow-icon-btc {
+        font-size: 1.3rem;
+    }
+
+    .flow-card-info strong {
+        font-size: 1rem;
+    }
+
+    /* Phone mockup */
+    .phone-mockup-wrapper {
+        transform: scale(0.85);
+        transform-origin: center top;
+    }
+
+    .phone-orbit-icon {
+        display: none;
+    }
+
+    .phone-connect-lines {
+        display: none;
+    }
+
+    .phone-glow {
+        display: none;
     }
 }
 
