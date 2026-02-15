@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => {
             initParticles();
             initTypingEffect();
+            pauseSVGAnimationsOnMobile();
         });
     });
 });
@@ -33,10 +34,13 @@ function initParticles() {
 
     // Mobile detection
     const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const maxParticles = isMobile ? 35 : 100;
-    const connectDist = isMobile ? 100 : 150;
-    const particleDensity = isMobile ? 20000 : 12000;
+    const maxParticles = isSmallMobile ? 15 : isMobile ? 25 : 100;
+    const connectDist = isMobile ? 90 : 150;
+    const particleDensity = isMobile ? 25000 : 12000;
+    const skipConnections = isSmallMobile;
+    let frameCount = 0;
 
     // Debounced resize
     let resizeTimeout;
@@ -152,13 +156,20 @@ function initParticles() {
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frameCount++;
 
         particles.forEach(p => {
             p.update();
             p.draw();
         });
 
-        connectParticles();
+        // Skip connections on small mobile, throttle on tablet
+        if (!skipConnections) {
+            if (!isMobile || frameCount % 2 === 0) {
+                connectParticles();
+            }
+        }
+
         animationId = requestAnimationFrame(animate);
     }
 
@@ -358,5 +369,19 @@ function initSmoothScroll() {
                 });
             }
         });
+    });
+}
+
+/* ============================================
+   PAUSE SVG ANIMATIONS ON MOBILE
+   ============================================ */
+function pauseSVGAnimationsOnMobile() {
+    if (window.innerWidth > 768) return;
+
+    // Pause all SMIL animations inside SVGs
+    document.querySelectorAll('svg').forEach(svg => {
+        if (typeof svg.pauseAnimations === 'function') {
+            try { svg.pauseAnimations(); } catch(e) {}
+        }
     });
 }

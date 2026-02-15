@@ -1983,6 +1983,78 @@ img {
     }
 }
 
+/* ---- Mobile Performance: Pause heavy SVG animations ---- */
+@media (max-width: 768px) {
+    /* Pause all SVG internal animations on mobile */
+    .vector-art svg,
+    .vector-about-helix,
+    .vector-about-ring,
+    .vector-grid,
+    .vector-nodes,
+    .vector-wave,
+    .vector-why-circuit,
+    .vector-why-mesh,
+    .vector-contact-orbits,
+    .vector-footer-line {
+        animation-play-state: paused !important;
+    }
+
+    /* Pause SMIL animations inside SVGs */
+    .vector-art animate,
+    .vector-art animateTransform,
+    .vector-art animateMotion,
+    .section-about animate,
+    .section-about animateTransform,
+    .section-about animateMotion,
+    .section-stats animate,
+    .section-services animate,
+    .section-services animateMotion,
+    .section-why animate,
+    .section-contact animate,
+    .section-contact animateTransform,
+    .footer animate,
+    .footer animateMotion {
+        animation-play-state: paused !important;
+    }
+
+    /* Simplify CSS animations - reduce to essentials */
+    .floating-card {
+        animation-duration: 10s !important;
+    }
+
+    .circuit-left,
+    .circuit-right {
+        animation: none !important;
+    }
+
+    /* Lighter backdrop filter */
+    .navbar.scrolled {
+        backdrop-filter: blur(12px) saturate(150%);
+        -webkit-backdrop-filter: blur(12px) saturate(150%);
+    }
+}
+
+@media (max-width: 480px) {
+    /* Kill most CSS animations on small phones */
+    .hero-glow-1,
+    .hero-glow-2 {
+        animation: none !important;
+    }
+
+    .hero-glow-3 {
+        animation: none !important;
+        opacity: 0.12;
+    }
+
+    .floating-card {
+        animation: none !important;
+    }
+
+    .geo-shape {
+        animation: none !important;
+    }
+}
+
 /* ---- Reduced Motion ---- */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
