@@ -378,8 +378,14 @@ function initSmoothScroll() {
 function pauseSVGAnimationsOnMobile() {
     if (window.innerWidth > 768) return;
 
-    // Pause all SMIL animations inside SVGs
-    document.querySelectorAll('svg').forEach(svg => {
+    // Only pause SMIL animations on background/decorative SVGs, NOT illustration SVGs
+    const backgroundSVGs = document.querySelectorAll(
+        '.vector-art svg, .vector-about-helix, .vector-about-ring, ' +
+        '.vector-grid, .vector-nodes, .vector-wave, ' +
+        '.vector-why-circuit, .vector-why-mesh, .vector-contact-orbits, ' +
+        '.vector-footer-line'
+    );
+    backgroundSVGs.forEach(svg => {
         if (typeof svg.pauseAnimations === 'function') {
             try { svg.pauseAnimations(); } catch(e) {}
         }

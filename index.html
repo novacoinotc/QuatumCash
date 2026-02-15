@@ -632,10 +632,19 @@
                     <!-- Arrow indicators -->
                     <polygon points="135,76 125,72 128,82" fill="#A78BFA" opacity="0.4"/>
                     <polygon points="665,124 675,128 672,118" fill="#F472B6" opacity="0.4"/>
-                    <!-- Traveling dots -->
-                    <circle class="flow-dot flow-dot-1" r="3" fill="#A78BFA" opacity="0.6"/>
-                    <circle class="flow-dot flow-dot-2" r="2.5" fill="#F472B6" opacity="0.5"/>
-                    <circle class="flow-dot flow-dot-3" r="2" fill="#818CF8" opacity="0.4"/>
+                    <!-- Traveling dots (SMIL animateMotion for cross-browser support) -->
+                    <circle r="3" fill="#A78BFA" opacity="0.6">
+                        <animateMotion dur="8s" repeatCount="indefinite"
+                            path="M720,100 A320,60 0 1,1 80,100 A320,60 0 1,1 720,100"/>
+                    </circle>
+                    <circle r="2.5" fill="#F472B6" opacity="0.5">
+                        <animateMotion dur="6s" repeatCount="indefinite"
+                            path="M680,100 A280,45 0 1,0 120,100 A280,45 0 1,0 680,100"/>
+                    </circle>
+                    <circle r="2" fill="#818CF8" opacity="0.4">
+                        <animateMotion dur="8s" repeatCount="indefinite" begin="-4s"
+                            path="M720,100 A320,60 0 1,1 80,100 A320,60 0 1,1 720,100"/>
+                    </circle>
                     <defs>
                         <linearGradient id="flow-path-grad" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stop-color="#818CF8" stop-opacity="0"/>

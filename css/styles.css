@@ -1081,27 +1081,7 @@ img {
     z-index: 0;
 }
 
-/* Traveling dots animation along elliptical path */
-.flow-dot-1 {
-    offset-path: ellipse(320px 60px at 50% 50%);
-    animation: flow-travel 8s linear infinite;
-}
-
-.flow-dot-2 {
-    offset-path: ellipse(280px 45px at 50% 50%);
-    animation: flow-travel 6s linear infinite reverse;
-}
-
-.flow-dot-3 {
-    offset-path: ellipse(320px 60px at 50% 50%);
-    animation: flow-travel 8s linear infinite;
-    animation-delay: -4s;
-}
-
-@keyframes flow-travel {
-    from { offset-distance: 0%; }
-    to { offset-distance: 100%; }
-}
+/* Traveling dots now use SVG animateMotion for cross-browser support */
 
 /* Flow cards (MXN / CRYPTO) */
 .flow-card {
@@ -1205,37 +1185,54 @@ img {
     text-transform: lowercase;
 }
 
-/* Orbiting mini dots around hexagon */
+/* Orbiting mini dots around hexagon - GPU only (transform) */
 .flow-orbit-dot {
     position: absolute;
     width: 6px;
     height: 6px;
     border-radius: 50%;
+    top: 50%;
+    left: 50%;
     will-change: transform;
 }
 
 .flow-orbit-dot-1 {
     background: var(--blue-light);
-    animation: orbit-hex 6s linear infinite;
+    animation: orbit-hex-1 6s linear infinite;
 }
 
 .flow-orbit-dot-2 {
     background: var(--pink-light);
-    animation: orbit-hex 8s linear infinite reverse;
+    animation: orbit-hex-2 8s linear infinite;
 }
 
 .flow-orbit-dot-3 {
     background: var(--purple-light);
-    animation: orbit-hex 5s linear infinite;
-    animation-delay: -2.5s;
+    animation: orbit-hex-3 5s linear infinite;
 }
 
-@keyframes orbit-hex {
-    0% { top: -10px; left: 50%; transform: translateX(-50%); }
-    25% { top: 40%; left: calc(100% + 15px); transform: translateX(0); }
-    50% { top: calc(80%); left: 50%; transform: translateX(-50%); }
-    75% { top: 40%; left: -15px; transform: translateX(0); }
-    100% { top: -10px; left: 50%; transform: translateX(-50%); }
+@keyframes orbit-hex-1 {
+    0% { transform: translate(-50%, -65px); }
+    25% { transform: translate(55px, -5px); }
+    50% { transform: translate(-50%, 45px); }
+    75% { transform: translate(-65px, -5px); }
+    100% { transform: translate(-50%, -65px); }
+}
+
+@keyframes orbit-hex-2 {
+    0% { transform: translate(-50%, 45px); }
+    25% { transform: translate(-65px, -5px); }
+    50% { transform: translate(-50%, -65px); }
+    75% { transform: translate(55px, -5px); }
+    100% { transform: translate(-50%, 45px); }
+}
+
+@keyframes orbit-hex-3 {
+    0% { transform: translate(55px, -5px); }
+    25% { transform: translate(-50%, 45px); }
+    50% { transform: translate(-65px, -5px); }
+    75% { transform: translate(-50%, -65px); }
+    100% { transform: translate(55px, -5px); }
 }
 
 /* ============================================
@@ -2754,7 +2751,7 @@ img {
     }
 
     .exchange-flow-orbits {
-        opacity: 0.6;
+        display: none;
     }
 
     .flow-center {
