@@ -1916,11 +1916,20 @@ img {
     }
 
     .chat-badge-icon {
-        display: none;
+        width: 32px;
+        height: 32px;
     }
 
-    .chat-glow {
-        display: none;
+    .chat-badge-fast {
+        left: -20px;
+    }
+
+    .chat-badge-lock {
+        right: -20px;
+    }
+
+    .chat-badge-check {
+        right: -18px;
     }
 
     /* Footer */
@@ -2056,6 +2065,66 @@ img {
 
     .chat-bubble {
         font-size: 0.72rem;
+    }
+
+    .chat-badge-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .chat-badge-icon svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .chat-badge-fast {
+        left: -14px;
+    }
+
+    .chat-badge-lock {
+        right: -14px;
+    }
+
+    .chat-badge-check {
+        right: -12px;
+    }
+
+    /* Phone orbit icons smaller */
+    .phone-orbit-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .orbit-btc {
+        left: -18px;
+        font-size: 0.9rem;
+    }
+
+    .orbit-menu {
+        right: -18px;
+    }
+
+    .orbit-menu svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .orbit-dollar {
+        left: -14px;
+        width: 26px;
+        height: 26px;
+        font-size: 0.85rem;
+    }
+
+    .orbit-check {
+        right: -16px;
+        width: 26px;
+        height: 26px;
+    }
+
+    .orbit-check svg {
+        width: 14px;
+        height: 14px;
     }
 
     /* Contact buttons full width */
@@ -2662,19 +2731,7 @@ img {
         animation: none !important;
     }
 
-    /* Illustrations: no animations on mobile */
-    .flow-orbit-dot,
-    .flow-dot {
-        animation: none !important;
-    }
-
-    .phone-orbit-icon {
-        animation: none !important;
-    }
-
-    .flow-hex-glow {
-        animation: none !important;
-    }
+    /* Illustrations: keep lightweight CSS animations running */
 
     /* Lighter backdrop filter */
     .navbar.scrolled {
@@ -2697,7 +2754,7 @@ img {
     }
 
     .exchange-flow-orbits {
-        display: none;
+        opacity: 0.6;
     }
 
     .flow-center {
@@ -2713,11 +2770,11 @@ img {
     .flow-hex-glow {
         width: 100px;
         height: 100px;
-        animation: none;
     }
 
     .flow-orbit-dot {
-        display: none;
+        width: 5px;
+        height: 5px;
     }
 
     .flow-card {
@@ -2747,15 +2804,36 @@ img {
     }
 
     .phone-orbit-icon {
-        display: none;
+        width: 36px;
+        height: 36px;
+    }
+
+    .orbit-btc {
+        left: -30px;
+    }
+
+    .orbit-menu {
+        right: -30px;
+    }
+
+    .orbit-dollar {
+        left: -24px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .orbit-check {
+        right: -28px;
+        width: 32px;
+        height: 32px;
     }
 
     .phone-connect-lines {
-        display: none;
+        opacity: 0.5;
     }
 
     .phone-glow {
-        display: none;
+        opacity: 0.7;
     }
 }
 
