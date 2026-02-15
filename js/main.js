@@ -36,10 +36,10 @@ function initParticles() {
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const maxParticles = isSmallMobile ? 15 : isMobile ? 25 : 100;
-    const connectDist = isMobile ? 90 : 150;
-    const particleDensity = isMobile ? 25000 : 12000;
-    const skipConnections = isSmallMobile;
+    const maxParticles = isSmallMobile ? 12 : isMobile ? 20 : 100;
+    const connectDist = isMobile ? 80 : 150;
+    const particleDensity = isMobile ? 30000 : 12000;
+    const skipConnections = isMobile;
     let frameCount = 0;
 
     // Debounced resize

@@ -1983,47 +1983,52 @@ img {
     }
 }
 
-/* ---- Mobile Performance: Pause heavy SVG animations ---- */
+/* ---- Mobile Performance ---- */
 @media (max-width: 768px) {
-    /* Pause all SVG internal animations on mobile */
-    .vector-art svg,
+    /* Hide glows completely - replace with static gradient on hero */
+    .hero-glow-1,
+    .hero-glow-2,
+    .hero-glow-3 {
+        display: none !important;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 60% 30%, rgba(124,58,237,0.12) 0%, transparent 60%),
+                    radial-gradient(ellipse at 30% 70%, rgba(79,70,229,0.08) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Hide all vector art SVGs on mobile */
+    .vector-art,
     .vector-about-helix,
     .vector-about-ring,
+    .about-geo-hex,
+    .about-geo-dot-ring,
     .vector-grid,
     .vector-nodes,
     .vector-wave,
     .vector-why-circuit,
     .vector-why-mesh,
     .vector-contact-orbits,
-    .vector-footer-line {
-        animation-play-state: paused !important;
+    .vector-footer-line,
+    .geo-cross-1,
+    .geo-cross-2,
+    .why-geo-diamond,
+    .why-geo-tri,
+    .footer-geo-hex,
+    .footer-geo-plus {
+        display: none !important;
     }
 
-    /* Pause SMIL animations inside SVGs */
-    .vector-art animate,
-    .vector-art animateTransform,
-    .vector-art animateMotion,
-    .section-about animate,
-    .section-about animateTransform,
-    .section-about animateMotion,
-    .section-stats animate,
-    .section-services animate,
-    .section-services animateMotion,
-    .section-why animate,
-    .section-contact animate,
-    .section-contact animateTransform,
-    .footer animate,
-    .footer animateMotion {
-        animation-play-state: paused !important;
-    }
-
-    /* Simplify CSS animations - reduce to essentials */
-    .floating-card {
-        animation-duration: 10s !important;
-    }
-
+    /* Kill all CSS animations on mobile */
+    .floating-card,
     .circuit-left,
-    .circuit-right {
+    .circuit-right,
+    .geo-shape {
         animation: none !important;
     }
 
@@ -2032,25 +2037,11 @@ img {
         backdrop-filter: blur(12px) saturate(150%);
         -webkit-backdrop-filter: blur(12px) saturate(150%);
     }
-}
 
-@media (max-width: 480px) {
-    /* Kill most CSS animations on small phones */
-    .hero-glow-1,
-    .hero-glow-2 {
-        animation: none !important;
-    }
-
-    .hero-glow-3 {
-        animation: none !important;
-        opacity: 0.12;
-    }
-
-    .floating-card {
-        animation: none !important;
-    }
-
-    .geo-shape {
+    /* Static glow for contact and stats */
+    .stats-glow,
+    .contact-glow {
+        opacity: 0.5;
         animation: none !important;
     }
 }
