@@ -154,7 +154,14 @@ function initParticles() {
         }
     }
 
+    let isVisible = true;
+
     function animate() {
+        if (!isVisible) {
+            animationId = null;
+            return;
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         frameCount++;
 
@@ -171,6 +178,18 @@ function initParticles() {
         }
 
         animationId = requestAnimationFrame(animate);
+    }
+
+    // Pause particles when hero is not visible (saves battery on mobile)
+    const hero = document.getElementById('inicio');
+    if (hero) {
+        const visObs = new IntersectionObserver((entries) => {
+            isVisible = entries[0].isIntersecting;
+            if (isVisible && !animationId) {
+                animate();
+            }
+        }, { threshold: 0 });
+        visObs.observe(hero);
     }
 
     // Check for reduced motion preference
