@@ -145,10 +145,11 @@ img {
 }
 
 /* Below-fold sections: skip rendering until near viewport */
+/* NOTE: .section-contact excluded — content-visibility containment breaks
+   CSS animations for absolutely-positioned children on mobile Safari */
 .section-stats,
 .section-services,
-.section-why,
-.section-contact {
+.section-why {
     content-visibility: auto;
     contain-intrinsic-size: auto 800px;
 }
@@ -1914,28 +1915,6 @@ img {
         gap: 12px;
     }
 
-    /* Chat mockup mobile */
-    .chat-window {
-        width: 270px;
-    }
-
-    .chat-badge-icon {
-        width: 32px;
-        height: 32px;
-    }
-
-    .chat-badge-fast {
-        left: -20px;
-    }
-
-    .chat-badge-lock {
-        right: -20px;
-    }
-
-    .chat-badge-check {
-        right: -18px;
-    }
-
     /* Footer */
     .footer-content {
         grid-template-columns: 1fr 1fr;
@@ -2149,25 +2128,6 @@ img {
 
     .why-number {
         font-size: 1.3rem;
-    }
-
-    /* Chat mockup smaller */
-    .chat-window {
-        width: 260px;
-    }
-
-    .chat-bubble {
-        font-size: 0.72rem;
-    }
-
-    .chat-badge-icon {
-        width: 28px;
-        height: 28px;
-    }
-
-    .chat-badge-icon svg {
-        width: 12px;
-        height: 12px;
     }
 
     /* Contact buttons full width */
@@ -2881,9 +2841,19 @@ img {
     /* -- content-visibility: larger estimate for mobile (taller sections) -- */
     .section-stats,
     .section-services,
-    .section-why,
-    .section-contact {
+    .section-why {
         contain-intrinsic-size: auto 1200px;
+    }
+
+    /* -- Chat badges: more visible animation on mobile -- */
+    .chat-badge-fast {
+        animation: float-orbit-mobile 4s ease-in-out infinite;
+    }
+    .chat-badge-lock {
+        animation: float-orbit-mobile 3.5s ease-in-out infinite 0.8s;
+    }
+    .chat-badge-check {
+        animation: float-orbit-mobile 4.5s ease-in-out infinite 1.5s;
     }
 }
 
@@ -2910,6 +2880,14 @@ img {
     50% { transform: translate(-42px, -5px); }
     75% { transform: translate(-50%, -40px); }
     100% { transform: translate(35px, -5px); }
+}
+
+/* Mobile chat badge float: bigger movement + slight X drift for visibility */
+@keyframes float-orbit-mobile {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(3px, -10px); }
+    50% { transform: translate(-2px, -18px); }
+    75% { transform: translate(2px, -8px); }
 }
 
 /* ---- Reduced Motion ---- */
