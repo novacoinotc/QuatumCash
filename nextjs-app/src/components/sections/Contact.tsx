@@ -7,13 +7,15 @@ import ChatMockup from "@/components/visuals/ChatMockup";
 import Button from "@/components/ui/Button";
 
 export default function Contact() {
+  const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
     const content = contentRef.current;
     const visual = visualRef.current;
-    if (!content || !visual) return;
+    if (!section || !content || !visual) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -25,79 +27,110 @@ export default function Contact() {
       return;
     }
 
-    gsap.from(content, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 0.8,
-      ease: "power3.out",
+    // Scrub-based timeline (converted from fire-once toggleActions)
+    const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: content,
-        start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        trigger: section,
+        start: isMobile ? "top 85%" : "top 70%",
+        end: isMobile ? "center center" : "60% center",
+        scrub: 1,
       },
     });
 
-    gsap.from(visual, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      scale: isMobile ? 1 : 0.95,
-      duration: 0.8,
-      delay: 0.2,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: visual,
-        start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
-      },
-    });
+    if (isMobile) {
+      // Mobile: simple opacity+y
+      tl.from(content, {
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      tl.from(
+        visual,
+        {
+          opacity: 0,
+          y: 20,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.6"
+      );
+    } else {
+      // Desktop: 3D entrance
+      tl.from(content, {
+        opacity: 0,
+        x: -80,
+        rotateY: 15,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      tl.from(
+        visual,
+        {
+          opacity: 0,
+          scale: 0.5,
+          rotateY: -20,
+          rotateX: 10,
+          y: 60,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.6"
+      );
+    }
 
     return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === content || t.trigger === visual) t.kill();
-      });
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
   return (
     <section
+      ref={sectionRef}
       id="contacto"
-      className="relative overflow-x-clip py-[var(--section-padding)]"
+      className="perspective-section relative py-[var(--section-padding)]"
     >
-      {/* Background glow */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
-        }}
-      />
+      {/* Background elements — overflow wrapper */}
+      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
+        {/* Background glow */}
+        <div
+          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
+          }}
+        />
 
-      {/* Concentric orbit rings */}
-      <svg
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-60 max-md:hidden"
-        viewBox="0 0 600 600"
-        fill="none"
-      >
-        <circle cx="300" cy="300" r="280" stroke="#7C3AED" strokeWidth="0.4" opacity="0.08" strokeDasharray="4 6">
-          <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="60s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="300" cy="300" r="220" stroke="#A78BFA" strokeWidth="0.4" opacity="0.06" strokeDasharray="3 8">
-          <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="-360 300 300" dur="45s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="300" cy="300" r="160" stroke="#F472B6" strokeWidth="0.4" opacity="0.06" strokeDasharray="2 10">
-          <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="35s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="580" cy="300" r="3" fill="#F472B6" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="20s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="520" cy="300" r="2.5" fill="#818CF8" opacity="0.25">
-          <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="-360 300 300" dur="16s" repeatCount="indefinite" />
-        </circle>
-      </svg>
+        {/* Concentric orbit rings */}
+        <svg
+          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-60 max-md:hidden"
+          viewBox="0 0 600 600"
+          fill="none"
+        >
+          <circle cx="300" cy="300" r="280" stroke="#7C3AED" strokeWidth="0.4" opacity="0.08" strokeDasharray="4 6">
+            <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="60s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="300" cy="300" r="220" stroke="#A78BFA" strokeWidth="0.4" opacity="0.06" strokeDasharray="3 8">
+            <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="-360 300 300" dur="45s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="300" cy="300" r="160" stroke="#F472B6" strokeWidth="0.4" opacity="0.06" strokeDasharray="2 10">
+            <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="35s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="580" cy="300" r="3" fill="#F472B6" opacity="0.3">
+            <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="360 300 300" dur="20s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="520" cy="300" r="2.5" fill="#818CF8" opacity="0.25">
+            <animateTransform attributeName="transform" type="rotate" from="0 300 300" to="-360 300 300" dur="16s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      </div>
 
       <div className="mx-auto max-w-[var(--container-max)] px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          <div ref={contentRef}>
+          <div ref={contentRef} style={{ perspective: "1000px" }}>
             <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
               Comienza Hoy
             </span>
@@ -184,7 +217,7 @@ export default function Contact() {
             </div>
           </div>
 
-          <div ref={visualRef} className="flex justify-center">
+          <div ref={visualRef} className="flex justify-center" style={{ perspective: "1000px" }}>
             <ChatMockup />
           </div>
         </div>

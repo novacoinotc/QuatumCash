@@ -36,25 +36,53 @@ export default function Stats() {
       },
     });
 
-    tl.from(header, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 1,
-      ease: "power3.out",
-    });
-
-    tl.from(
-      grid.children,
-      {
+    if (isMobile) {
+      // Mobile: simple opacity+y
+      tl.from(header, {
         opacity: 0,
-        y: isMobile ? 20 : 40,
-        scale: 0.9,
-        duration: 0.8,
-        stagger: isMobile ? 0.05 : 0.1,
+        y: 20,
+        duration: 1,
         ease: "power3.out",
-      },
-      "-=0.5"
-    );
+      });
+
+      tl.from(
+        grid.children,
+        {
+          opacity: 0,
+          y: 20,
+          scale: 0.9,
+          duration: 0.8,
+          stagger: 0.05,
+          ease: "power3.out",
+        },
+        "-=0.5"
+      );
+    } else {
+      // Desktop: cinematic header + 3D card flip
+      // Header with clipPath wipe
+      tl.from(header, {
+        clipPath: "inset(0 0 100% 0)",
+        opacity: 0,
+        y: 30,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      // Cards: 3D flip-in
+      tl.from(
+        grid.children,
+        {
+          opacity: 0,
+          rotateX: 45,
+          scale: 0.7,
+          y: 60,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "back.out(1.2)",
+        },
+        "-=0.5"
+      );
+    }
 
     return () => {
       tl.scrollTrigger?.kill();
@@ -66,52 +94,55 @@ export default function Stats() {
     <section
       ref={sectionRef}
       id="estadisticas"
-      className="relative overflow-x-clip py-[var(--section-padding)]"
+      className="perspective-section relative py-[var(--section-padding)]"
     >
-      {/* Background glow */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
-        }}
-      />
+      {/* Background decorative elements — overflow wrapper */}
+      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
+        {/* Background glow */}
+        <div
+          className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
+          }}
+        />
 
-      {/* Grid pattern SVG */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-50"
-        viewBox="0 0 1200 400"
-        fill="none"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id="grid-g"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
-            <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#EC4899" stopOpacity="0.06" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="80" x2="1200" y2="80" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="0" y1="160" x2="1200" y2="160" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="0" y1="240" x2="1200" y2="240" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="0" y1="320" x2="1200" y2="320" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="200" y1="0" x2="200" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="400" y1="0" x2="400" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="600" y1="0" x2="600" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="800" y1="0" x2="800" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <line x1="1000" y1="0" x2="1000" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-        <circle cx="600" cy="200" r="2.5" fill="#F472B6" opacity="0.15">
-          <animate attributeName="opacity" values="0.1;0.35;0.1" dur="3s" repeatCount="indefinite" />
-        </circle>
-      </svg>
+        {/* Grid pattern SVG */}
+        <svg
+          className="absolute inset-0 h-full w-full opacity-50"
+          viewBox="0 0 1200 400"
+          fill="none"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient
+              id="grid-g"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#EC4899" stopOpacity="0.06" />
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="80" x2="1200" y2="80" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="0" y1="160" x2="1200" y2="160" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="0" y1="240" x2="1200" y2="240" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="0" y1="320" x2="1200" y2="320" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="200" y1="0" x2="200" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="400" y1="0" x2="400" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="600" y1="0" x2="600" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="800" y1="0" x2="800" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <line x1="1000" y1="0" x2="1000" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
+          <circle cx="600" cy="200" r="2.5" fill="#F472B6" opacity="0.15">
+            <animate attributeName="opacity" values="0.1;0.35;0.1" dur="3s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      </div>
 
       <div className="mx-auto max-w-[var(--container-max)] px-6">
-        <div ref={headerRef} className="mb-12 text-center">
+        <div ref={headerRef} className="will-change-clip mb-12 text-center">
           <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
             Resultados que Hablan
           </span>
@@ -124,6 +155,7 @@ export default function Stats() {
         <div
           ref={gridRef}
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ perspective: "1000px" }}
         >
           {STATS.map((stat) => (
             <StatCard

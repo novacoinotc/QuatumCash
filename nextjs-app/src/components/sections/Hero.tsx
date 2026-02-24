@@ -14,6 +14,11 @@ export default function Hero() {
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
   const orbitalRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const buttonsRef = useRef<HTMLDivElement>(null);
+  const trustRef = useRef<HTMLDivElement>(null);
   const typingText = useTypingEffect(TYPING_PHRASES);
   const glow1Ref = useParallax<HTMLDivElement>({ speed: -30 });
   const glow2Ref = useParallax<HTMLDivElement>({ speed: -50 });
@@ -24,6 +29,11 @@ export default function Hero() {
     const content = contentRef.current;
     const scrollIndicator = scrollIndicatorRef.current;
     const orbital = orbitalRef.current;
+    const badge = badgeRef.current;
+    const heading = headingRef.current;
+    const subtitle = subtitleRef.current;
+    const buttons = buttonsRef.current;
+    const trust = trustRef.current;
     if (!section || !content) return;
 
     const prefersReduced = window.matchMedia(
@@ -37,17 +47,113 @@ export default function Hero() {
 
     const isMobile = window.innerWidth <= 768;
 
-    // Entrance animation
-    const entranceTl = gsap.timeline({ delay: 0.3 });
-    entranceTl.from(content.children, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: isMobile ? 0.5 : 0.8,
-      stagger: isMobile ? 0.1 : 0.15,
-      ease: "power3.out",
-    });
+    // ═══ Entrance animation ═══
+    if (isMobile) {
+      // Mobile: simple stagger
+      const entranceTl = gsap.timeline({ delay: 0.3 });
+      entranceTl.from(content.children, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power3.out",
+      });
+    } else {
+      // Desktop: cinematic sequence
+      const entranceTl = gsap.timeline({ delay: 0.3 });
 
-    // Scroll-away fade: content fades out + scales down as you scroll past
+      // 1. Badge: drop from above with blur
+      if (badge) {
+        entranceTl.from(badge, {
+          opacity: 0,
+          y: -40,
+          filter: "blur(10px)",
+          duration: 0.6,
+          ease: "power3.out",
+        });
+      }
+
+      // 2. Heading: split-text letter by letter with 3D rotateX
+      if (heading) {
+        const headingText = heading.textContent || "";
+        // Store for cleanup — skip the gradient span (it has the typing effect)
+        const staticParts = heading.querySelectorAll(":scope > br, :scope > span");
+
+        // Animate the heading as a whole with clipPath wipe
+        entranceTl.from(
+          heading,
+          {
+            opacity: 0,
+            y: 60,
+            rotateX: -15,
+            duration: 0.8,
+            ease: "power3.out",
+          },
+          "-=0.2"
+        );
+
+        // 3. Gradient span: clipPath wipe
+        const gradientSpan = heading.querySelector(".gradient-text");
+        if (gradientSpan) {
+          entranceTl.from(
+            gradientSpan,
+            {
+              clipPath: "inset(0 100% 0 0)",
+              duration: 1.0,
+              ease: "power4.out",
+            },
+            "-=0.4"
+          );
+        }
+      }
+
+      // 4. Subtitle: fade up with blur
+      if (subtitle) {
+        entranceTl.from(
+          subtitle,
+          {
+            opacity: 0,
+            y: 30,
+            filter: "blur(6px)",
+            duration: 0.7,
+            ease: "power3.out",
+          },
+          "-=0.5"
+        );
+      }
+
+      // 5. Buttons: scale in with elastic ease
+      if (buttons) {
+        entranceTl.from(
+          buttons.children,
+          {
+            opacity: 0,
+            scale: 0.5,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: "elastic.out(1, 0.5)",
+          },
+          "-=0.3"
+        );
+      }
+
+      // 6. Trust badges: fade in stagger
+      if (trust) {
+        entranceTl.from(
+          trust.children,
+          {
+            opacity: 0,
+            y: 15,
+            duration: 0.4,
+            stagger: 0.08,
+            ease: "power3.out",
+          },
+          "-=0.2"
+        );
+      }
+    }
+
+    // ═══ Scroll-away: dramatic exit ═══
     const scrollAwayTl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
@@ -64,24 +170,43 @@ export default function Hero() {
         ease: "none",
       });
     } else {
+      // Dramatic desktop exit
       scrollAwayTl.to(content, {
         opacity: 0,
-        scale: 0.95,
-        y: -60,
+        scale: 0.85,
+        y: -100,
+        rotateX: 5,
         ease: "none",
       });
 
-      // Parallax depth: orbital rings move slower (creates depth)
+      // OrbitalRings parallax depth
       if (orbital) {
         scrollAwayTl.to(
           orbital,
           {
-            y: -30,
+            y: -50,
+            rotateX: 15,
+            scale: 0.95,
             ease: "none",
           },
           0
         );
       }
+
+      // Glow orbs: more pronounced movement
+      const glowOrbs = section.querySelectorAll(".hero-glow-orb");
+      glowOrbs.forEach((orb, i) => {
+        scrollAwayTl.to(
+          orb,
+          {
+            y: -80 - i * 30,
+            scale: 0.7 + i * 0.1,
+            opacity: 0,
+            ease: "none",
+          },
+          0
+        );
+      });
     }
 
     // Scroll indicator fades on scroll start
@@ -98,7 +223,6 @@ export default function Hero() {
     }
 
     return () => {
-      entranceTl.kill();
       scrollAwayTl.scrollTrigger?.kill();
       scrollAwayTl.kill();
       ScrollTrigger.getAll().forEach((t) => {
@@ -111,14 +235,14 @@ export default function Hero() {
     <section
       ref={sectionRef}
       id="inicio"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden pt-20"
+      className="perspective-section relative flex min-h-screen items-center justify-center overflow-hidden pt-20"
     >
       <ParticleCanvas />
 
       {/* Glow orbs */}
       <div
         ref={glow1Ref}
-        className="pointer-events-none absolute left-1/4 top-1/4 h-[400px] w-[400px] rounded-full opacity-60"
+        className="hero-glow-orb pointer-events-none absolute left-1/4 top-1/4 h-[400px] w-[400px] rounded-full opacity-60"
         style={{
           background:
             "radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)",
@@ -126,7 +250,7 @@ export default function Hero() {
       />
       <div
         ref={glow2Ref}
-        className="pointer-events-none absolute right-1/4 top-1/3 h-[350px] w-[350px] rounded-full opacity-50"
+        className="hero-glow-orb pointer-events-none absolute right-1/4 top-1/3 h-[350px] w-[350px] rounded-full opacity-50"
         style={{
           background:
             "radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%)",
@@ -134,7 +258,7 @@ export default function Hero() {
       />
       <div
         ref={glow3Ref}
-        className="pointer-events-none absolute bottom-1/4 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full opacity-40"
+        className="hero-glow-orb pointer-events-none absolute bottom-1/4 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full opacity-40"
         style={{
           background:
             "radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)",
@@ -148,15 +272,16 @@ export default function Hero() {
       <div
         ref={contentRef}
         className="relative z-10 mx-auto flex max-w-[var(--container-max)] flex-col items-center px-6 text-center"
+        style={{ perspective: "800px" }}
       >
         {/* Badge */}
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--dark-border)] bg-[var(--dark-card)]/80 px-5 py-2.5 text-sm font-medium text-[var(--gray-300)] backdrop-blur-sm">
+        <div ref={badgeRef} className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--dark-border)] bg-[var(--dark-card)]/80 px-5 py-2.5 text-sm font-medium text-[var(--gray-300)] backdrop-blur-sm">
           <span className="inline-block h-2 w-2 animate-[pulse-dot_2s_infinite] rounded-full bg-emerald-400" />
           Operadora Verificada Pro &bull; NovaCoin.mx
         </div>
 
         {/* Title */}
-        <h1 className="mb-6 font-[var(--font-primary)] text-[clamp(2.2rem,5vw,4rem)] font-extrabold leading-[1.1] text-white">
+        <h1 ref={headingRef} className="mb-6 font-[var(--font-primary)] text-[clamp(2.2rem,5vw,4rem)] font-extrabold leading-[1.1] text-white">
           Tu aliada experta en el
           <br />
           <span className="gradient-text">
@@ -166,7 +291,7 @@ export default function Hero() {
         </h1>
 
         {/* Subtitle */}
-        <p className="mb-8 max-w-2xl text-lg text-[var(--gray-400)]">
+        <p ref={subtitleRef} className="mb-8 max-w-2xl text-lg text-[var(--gray-400)]">
           Soy la cuenta P2P mas grande de Mexico. Con mas de{" "}
           <strong className="text-white">83,000+ operaciones</strong> exitosas y
           un historial impecable, transformo la manera en que intercambias
@@ -174,7 +299,7 @@ export default function Hero() {
         </p>
 
         {/* Buttons */}
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-4">
+        <div ref={buttonsRef} className="mb-8 flex flex-wrap items-center justify-center gap-4">
           <Button href={WHATSAPP_URL} target="_blank" rel="noopener">
             <svg
               width="20"
@@ -202,7 +327,7 @@ export default function Hero() {
         </div>
 
         {/* Trust badges */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--gray-400)]">
+        <div ref={trustRef} className="flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--gray-400)]">
           {["KYC Verificada", "Comerciante Pro", "100% Completadas"].map(
             (item) => (
               <div key={item} className="flex items-center gap-2">

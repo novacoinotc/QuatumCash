@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import PhoneMockup from "@/components/visuals/PhoneMockup";
 
 export default function About() {
@@ -41,43 +41,78 @@ export default function About() {
       },
     });
 
-    // Content enters
-    tl.from(content, {
-      opacity: 0,
-      x: isMobile ? 0 : -50,
-      y: isMobile ? 20 : 0,
-      duration: 1,
-      ease: "power3.out",
-    });
-
-    // Phone enters (overlapping slightly)
-    tl.from(
-      visual,
-      {
+    if (isMobile) {
+      // Mobile: simple opacity+y
+      tl.from(content, {
         opacity: 0,
-        x: isMobile ? 0 : 50,
-        y: isMobile ? 20 : 0,
-        scale: isMobile ? 1 : 0.9,
+        y: 20,
         duration: 1,
         ease: "power3.out",
-      },
-      "-=0.6"
-    );
+      });
 
-    // Feature cards stagger
-    if (features.length) {
       tl.from(
-        features,
+        visual,
         {
           opacity: 0,
           y: 20,
-          rotateX: isMobile ? 0 : 10,
-          duration: 0.5,
-          stagger: 0.15,
+          duration: 1,
           ease: "power3.out",
         },
-        "-=0.4"
+        "-=0.6"
       );
+
+      if (features.length) {
+        tl.from(
+          features,
+          {
+            opacity: 0,
+            y: 20,
+            duration: 0.5,
+            stagger: 0.15,
+            ease: "power3.out",
+          },
+          "-=0.4"
+        );
+      }
+    } else {
+      // Desktop: cinematic clipPath wipe + 3D phone
+      tl.from(content, {
+        clipPath: "inset(0 100% 0 0)",
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      // Phone: 3D entrance
+      tl.from(
+        visual,
+        {
+          opacity: 0,
+          scale: 0.6,
+          rotateY: -25,
+          rotateX: 10,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.6"
+      );
+
+      // Feature cards: dramatic stagger with 3D
+      if (features.length) {
+        tl.from(
+          features,
+          {
+            opacity: 0,
+            rotateX: 30,
+            scale: 0.85,
+            y: 40,
+            duration: 0.5,
+            stagger: 0.15,
+            ease: "back.out(1.4)",
+          },
+          "-=0.4"
+        );
+      }
     }
 
     return () => {
@@ -90,49 +125,51 @@ export default function About() {
     <section
       ref={sectionRef}
       id="sobre-mi"
-      className="relative overflow-x-clip py-[var(--section-padding)]"
+      className="perspective-section relative py-[var(--section-padding)]"
     >
-      {/* Background decorative SVGs */}
-      <svg
-        className="pointer-events-none absolute left-0 top-0 h-full w-[200px] opacity-60 max-md:hidden"
-        viewBox="0 0 200 800"
-        fill="none"
-      >
-        <path
-          d="M100,0 C150,80 50,160 100,240 C150,320 50,400 100,480 C150,560 50,640 100,720 C130,780 80,800 100,800"
-          stroke="url(#about-helix-g)"
-          strokeWidth="0.6"
-          opacity="0.12"
+      {/* Background decorative SVGs — wrapped for overflow containment */}
+      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
+        <svg
+          className="absolute left-0 top-0 h-full w-[200px] opacity-60 max-md:hidden"
+          viewBox="0 0 200 800"
           fill="none"
-          strokeDasharray="5 8"
         >
-          <animate
-            attributeName="stroke-dashoffset"
-            from="0"
-            to="-130"
-            dur="6s"
-            repeatCount="indefinite"
-          />
-        </path>
-        <defs>
-          <linearGradient
-            id="about-helix-g"
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
+          <path
+            d="M100,0 C150,80 50,160 100,240 C150,320 50,400 100,480 C150,560 50,640 100,720 C130,780 80,800 100,800"
+            stroke="url(#about-helix-g)"
+            strokeWidth="0.6"
+            opacity="0.12"
+            fill="none"
+            strokeDasharray="5 8"
           >
-            <stop offset="0%" stopColor="#7C3AED" stopOpacity="0" />
-            <stop offset="20%" stopColor="#7C3AED" />
-            <stop offset="80%" stopColor="#EC4899" />
-            <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
+            <animate
+              attributeName="stroke-dashoffset"
+              from="0"
+              to="-130"
+              dur="6s"
+              repeatCount="indefinite"
+            />
+          </path>
+          <defs>
+            <linearGradient
+              id="about-helix-g"
+              x1="0%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0" />
+              <stop offset="20%" stopColor="#7C3AED" />
+              <stop offset="80%" stopColor="#EC4899" />
+              <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
 
       <div className="mx-auto max-w-[var(--container-max)] px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          <div ref={contentRef}>
+          <div ref={contentRef} className="will-change-clip">
             <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
               Quien Soy
             </span>
@@ -161,7 +198,7 @@ export default function About() {
               sentir que tu operacion es la unica que importa. Porque asi es.
             </p>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4" style={{ perspective: "800px" }}>
               <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
                   <svg
@@ -234,7 +271,7 @@ export default function About() {
             </div>
           </div>
 
-          <div ref={visualRef} className="flex justify-center">
+          <div ref={visualRef} className="flex justify-center" style={{ perspective: "1000px" }}>
             <PhoneMockup />
           </div>
         </div>

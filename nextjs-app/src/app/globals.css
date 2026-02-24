@@ -22,6 +22,7 @@
   --dark: #0B0D17;
   --dark-card: #111328;
   --dark-border: #1E2044;
+  --current-bg: #0B0D17;
   --gradient-primary: linear-gradient(135deg, var(--blue) 0%, var(--purple) 50%, var(--pink) 100%);
   --gradient-text: linear-gradient(135deg, var(--blue-light) 0%, var(--purple-light) 40%, var(--pink-light) 100%);
   --gradient-glow: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
@@ -42,14 +43,23 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: var(--dark);
+  background-color: var(--current-bg);
   color: var(--gray-300);
   line-height: 1.7;
   overflow-x: hidden;
+  transition: background-color 0.1s linear;
 }
 
-/* ---- Section overflow containment ---- */
-main > section {
+/* ---- Cinematic Utilities ---- */
+.will-change-clip { will-change: clip-path; }
+
+.perspective-section {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+/* ---- Section overflow containment — wrapper approach for 3D compat ---- */
+.section-overflow-wrapper {
   overflow-x: clip;
 }
 
@@ -130,13 +140,6 @@ main > section {
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-4px); }
-}
-
-/* ---- Section Divider ---- */
-.section-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
-  opacity: 0.3;
 }
 
 @keyframes chat-online-pulse {
