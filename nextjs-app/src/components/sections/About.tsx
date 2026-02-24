@@ -9,16 +9,13 @@ export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
-    triggerRef: sectionRef,
-    start: 0.05,
-    end: 0.3,
-  });
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
 
   useEffect(() => {
     const section = sectionRef.current;
     const content = contentRef.current;
     const visual = visualRef.current;
+    const heading = headingRef.current;
     if (!section || !content || !visual) return;
 
     const prefersReduced = window.matchMedia(
@@ -28,17 +25,14 @@ export default function About() {
 
     if (prefersReduced) {
       gsap.set([content, visual], { opacity: 1, x: 0, y: 0 });
-      gsap.set(content.querySelectorAll(".about-feature"), {
-        opacity: 1,
-        y: 0,
-      });
+      gsap.set(content.querySelectorAll(".about-feature"), { opacity: 1, y: 0 });
+      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
       return;
     }
 
     const features = content.querySelectorAll(".about-feature");
 
     if (isMobile) {
-      // Mobile: simple scrub, NO pin
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -48,121 +42,78 @@ export default function About() {
         },
       });
 
-      tl.from(content, {
-        opacity: 0,
-        y: 20,
-        duration: 1,
-        ease: "power3.out",
-      });
-
-      tl.from(
-        visual,
-        {
-          opacity: 0,
-          y: 20,
-          duration: 1,
-          ease: "power3.out",
-        },
-        "-=0.6"
-      );
-
+      tl.from(content, { opacity: 0, y: 20, duration: 1 });
+      tl.from(visual, { opacity: 0, y: 20, duration: 1 }, "-=0.6");
       if (features.length) {
-        tl.from(
-          features,
-          {
-            opacity: 0,
-            y: 20,
-            duration: 0.5,
-            stagger: 0.15,
-            ease: "power3.out",
-          },
-          "-=0.4"
-        );
+        tl.from(features, { opacity: 0, y: 20, stagger: 0.15, duration: 0.5 }, "-=0.4");
       }
 
-      return () => {
-        tl.scrollTrigger?.kill();
-        tl.kill();
-      };
+      return () => { tl.scrollTrigger?.kill(); tl.kill(); };
     }
 
-    // Desktop: pinned fullscreen with internal scrub sequence
+    // Desktop: pinned fullscreen with internal scrub
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: "+=100vh",
+        end: "+=150vh",
         pin: true,
         anticipatePin: 1,
-        scrub: 0.5,
+        scrub: 1,
       },
     });
 
-    // 1. Label fades in
+    // 0-0.1: Label
     const label = content.querySelector(".about-label");
     if (label) {
-      tl.from(label, {
-        opacity: 0,
-        y: 20,
-        duration: 0.15,
-        ease: "power3.out",
-      });
+      tl.from(label, { opacity: 0, y: 20, duration: 0.1 }, 0);
     }
 
-    // 2. Text reveal handled by useScrollTextReveal hook (synced to same trigger)
+    // 0.05-0.35: Word-by-word heading reveal
+    if (heading) {
+      const words = heading.querySelectorAll(".scroll-word");
+      if (words.length) {
+        words.forEach((word, i) => {
+          tl.to(word, {
+            y: 0,
+            opacity: 1,
+            duration: 0.04,
+            ease: "power2.out",
+          }, 0.05 + i * (0.3 / words.length));
+        });
+      }
+    }
 
-    // 3. Paragraphs fade in
+    // 0.3-0.5: Paragraphs
     const paragraphs = content.querySelectorAll(".about-paragraph");
     if (paragraphs.length) {
-      tl.from(
-        paragraphs,
-        {
-          opacity: 0,
-          y: 30,
-          duration: 0.2,
-          stagger: 0.08,
-          ease: "power3.out",
-        },
-        0.25
-      );
+      tl.from(paragraphs, { opacity: 0, y: 30, stagger: 0.06, duration: 0.15 }, 0.3);
     }
 
-    // 4. Phone 3D entrance
-    tl.from(
-      visual,
-      {
-        opacity: 0,
-        scale: 0.5,
-        rotateY: -30,
-        rotateX: 10,
-        x: 100,
-        duration: 0.3,
-        ease: "power3.out",
-      },
-      0.3
-    );
+    // 0.4-0.65: Phone 3D entrance
+    tl.from(visual, {
+      opacity: 0,
+      scale: 0.6,
+      rotateY: -25,
+      rotateX: 10,
+      duration: 0.25,
+      ease: "power3.out",
+    }, 0.4);
 
-    // 5. Feature cards stagger
+    // 0.6-0.85: Feature cards stagger
     if (features.length) {
-      tl.from(
-        features,
-        {
-          opacity: 0,
-          rotateX: 30,
-          scale: 0.85,
-          y: 40,
-          duration: 0.2,
-          stagger: 0.06,
-          ease: "back.out(1.4)",
-        },
-        0.5
-      );
+      tl.from(features, {
+        opacity: 0,
+        rotateX: 30,
+        scale: 0.85,
+        y: 40,
+        stagger: 0.06,
+        duration: 0.15,
+        ease: "back.out(1.4)",
+      }, 0.6);
     }
 
-    return () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
-    };
+    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
   }, []);
 
   return (
@@ -172,7 +123,6 @@ export default function About() {
       className="section-pinned perspective-section relative"
       style={{ zIndex: 5, backgroundColor: "var(--bg-about)" }}
     >
-      {/* Background decorative SVGs */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
         <svg
           className="absolute left-0 top-0 h-full w-[200px] opacity-60 max-md:hidden"
@@ -187,22 +137,10 @@ export default function About() {
             fill="none"
             strokeDasharray="5 8"
           >
-            <animate
-              attributeName="stroke-dashoffset"
-              from="0"
-              to="-130"
-              dur="6s"
-              repeatCount="indefinite"
-            />
+            <animate attributeName="stroke-dashoffset" from="0" to="-130" dur="6s" repeatCount="indefinite" />
           </path>
           <defs>
-            <linearGradient
-              id="about-helix-g"
-              x1="0%"
-              y1="0%"
-              x2="0%"
-              y2="100%"
-            >
+            <linearGradient id="about-helix-g" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#7C3AED" stopOpacity="0" />
               <stop offset="20%" stopColor="#7C3AED" />
               <stop offset="80%" stopColor="#EC4899" />
@@ -241,71 +179,29 @@ export default function About() {
             <div className="flex flex-col gap-4" style={{ perspective: "800px" }}>
               <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
                 </div>
                 <div>
-                  <strong className="text-sm text-white">
-                    Velocidad inigualable
-                  </strong>
-                  <span className="block text-xs text-[var(--gray-500)]">
-                    7 min promedio de liberacion
-                  </span>
+                  <strong className="text-sm text-white">Velocidad inigualable</strong>
+                  <span className="block text-xs text-[var(--gray-500)]">7 min promedio de liberacion</span>
                 </div>
               </div>
               <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 </div>
                 <div>
-                  <strong className="text-sm text-white">
-                    Seguridad absoluta
-                  </strong>
-                  <span className="block text-xs text-[var(--gray-500)]">
-                    Deposito de garantia en USDT
-                  </span>
+                  <strong className="text-sm text-white">Seguridad absoluta</strong>
+                  <span className="block text-xs text-[var(--gray-500)]">Deposito de garantia en USDT</span>
                 </div>
               </div>
               <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                  </svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
                 </div>
                 <div>
-                  <strong className="text-sm text-white">
-                    Atencion excepcional
-                  </strong>
-                  <span className="block text-xs text-[var(--gray-500)]">
-                    Servicio premium 24/7
-                  </span>
+                  <strong className="text-sm text-white">Atencion excepcional</strong>
+                  <span className="block text-xs text-[var(--gray-500)]">Servicio premium 24/7</span>
                 </div>
               </div>
             </div>

@@ -10,16 +10,13 @@ export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
-    triggerRef: sectionRef,
-    start: 0.05,
-    end: 0.3,
-  });
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
     const grid = gridRef.current;
+    const heading = headingRef.current;
     if (!section || !header || !grid) return;
 
     const prefersReduced = window.matchMedia(
@@ -29,6 +26,7 @@ export default function Stats() {
 
     if (prefersReduced) {
       gsap.set([header, ...Array.from(grid.children)], { opacity: 1, y: 0 });
+      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
       return;
     }
 
@@ -42,30 +40,10 @@ export default function Stats() {
         },
       });
 
-      tl.from(header, {
-        opacity: 0,
-        y: 20,
-        duration: 1,
-        ease: "power3.out",
-      });
+      tl.from(header, { opacity: 0, y: 20, duration: 1 });
+      tl.from(grid.children, { opacity: 0, y: 20, scale: 0.9, stagger: 0.05, duration: 0.8 }, "-=0.5");
 
-      tl.from(
-        grid.children,
-        {
-          opacity: 0,
-          y: 20,
-          scale: 0.9,
-          duration: 0.8,
-          stagger: 0.05,
-          ease: "power3.out",
-        },
-        "-=0.5"
-      );
-
-      return () => {
-        tl.scrollTrigger?.kill();
-        tl.kill();
-      };
+      return () => { tl.scrollTrigger?.kill(); tl.kill(); };
     }
 
     // Desktop: pinned fullscreen
@@ -73,45 +51,46 @@ export default function Stats() {
       scrollTrigger: {
         trigger: section,
         start: "top top",
-        end: "+=80vh",
+        end: "+=120vh",
         pin: true,
         anticipatePin: 1,
-        scrub: 0.5,
+        scrub: 1,
       },
     });
 
-    // Label
+    // 0-0.1: Label
     const label = header.querySelector(".stats-label");
     if (label) {
-      tl.from(label, {
-        opacity: 0,
-        y: 20,
-        duration: 0.15,
-        ease: "power3.out",
-      });
+      tl.from(label, { opacity: 0, y: 20, duration: 0.1 }, 0);
     }
 
-    // Heading text reveal handled by hook
+    // 0.05-0.35: Word-by-word heading
+    if (heading) {
+      const words = heading.querySelectorAll(".scroll-word");
+      if (words.length) {
+        words.forEach((word, i) => {
+          tl.to(word, {
+            y: 0,
+            opacity: 1,
+            duration: 0.04,
+            ease: "power2.out",
+          }, 0.05 + i * (0.3 / words.length));
+        });
+      }
+    }
 
-    // Cards: 3D flip-in with slower stagger
-    tl.from(
-      grid.children,
-      {
-        opacity: 0,
-        rotateX: 60,
-        scale: 0.6,
-        y: 80,
-        duration: 0.4,
-        stagger: 0.08,
-        ease: "back.out(1.2)",
-      },
-      0.35
-    );
+    // 0.4-0.85: Cards 3D flip-in
+    tl.from(grid.children, {
+      opacity: 0,
+      rotateX: 45,
+      scale: 0.7,
+      y: 60,
+      stagger: 0.08,
+      duration: 0.2,
+      ease: "back.out(1.2)",
+    }, 0.4);
 
-    return () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
-    };
+    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
   }, []);
 
   return (
@@ -121,30 +100,14 @@ export default function Stats() {
       className="section-pinned perspective-section relative"
       style={{ zIndex: 4, backgroundColor: "var(--bg-stats)" }}
     >
-      {/* Background decorative elements */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
         <div
           className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)" }}
         />
-
-        <svg
-          className="absolute inset-0 h-full w-full opacity-50"
-          viewBox="0 0 1200 400"
-          fill="none"
-          preserveAspectRatio="none"
-        >
+        <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 1200 400" fill="none" preserveAspectRatio="none">
           <defs>
-            <linearGradient
-              id="grid-g"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
+            <linearGradient id="grid-g" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.06" />
               <stop offset="100%" stopColor="#EC4899" stopOpacity="0.06" />
             </linearGradient>

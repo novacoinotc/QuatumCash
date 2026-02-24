@@ -30,15 +30,15 @@ const COLORS: [number, number, number][] = [
   [100, 200, 255], // cyan/blue accent
 ];
 
-const CONNECT_DIST_DESKTOP = 180;
-const CONNECT_DIST_HUB = 250;
+const CONNECT_DIST_DESKTOP = 160;
+const CONNECT_DIST_HUB = 220;
 const PARTICLE_DENSITY_DESKTOP = 12000;
 const PARTICLE_DENSITY_MOBILE = 30000;
-const MAX_PARTICLES_DESKTOP = 70;
+const MAX_PARTICLES_DESKTOP = 60;
 const MAX_PARTICLES_MOBILE = 20;
 const MAX_PARTICLES_SMALL = 12;
-const HUB_RATIO = 0.12;
-const NUM_DATA_PACKETS = 6;
+const HUB_RATIO = 0.1;
+const NUM_DATA_PACKETS = 4;
 
 export default function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,12 +61,12 @@ export default function ParticleCanvas() {
         x: Math.random() * width,
         y: Math.random() * height,
         size: isHub
-          ? Math.random() * 10 + 15 // Hub: 15-25px (was 3-5)
-          : Math.random() * (isMobile ? 1.2 : 2) + 0.5,
-        speedX: (Math.random() - 0.5) * (isMobile ? 0.25 : isHub ? 0.15 : 0.4),
-        speedY: (Math.random() - 0.5) * (isMobile ? 0.25 : isHub ? 0.15 : 0.4),
+          ? Math.random() * 4 + 6 // Hub: 6-10px
+          : Math.random() * (isMobile ? 1.2 : 1.5) + 0.5,
+        speedX: (Math.random() - 0.5) * (isMobile ? 0.25 : isHub ? 0.2 : 0.4),
+        speedY: (Math.random() - 0.5) * (isMobile ? 0.25 : isHub ? 0.2 : 0.4),
         opacity: isHub
-          ? Math.random() * 0.3 + 0.5 // Hub: 0.5-0.8
+          ? Math.random() * 0.3 + 0.4 // Hub: 0.4-0.7
           : Math.random() * 0.4 + 0.1,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
         isHub,
@@ -122,7 +122,7 @@ export default function ParticleCanvas() {
     const particles: Particle[] = [];
 
     // Ensure we have hub nodes on desktop (8-10 hubs)
-    const hubCount = enableConstellation ? Math.max(8, Math.floor(count * HUB_RATIO)) : 0;
+    const hubCount = enableConstellation ? Math.max(6, Math.floor(count * HUB_RATIO)) : 0;
     for (let i = 0; i < count; i++) {
       particles.push(createParticle(canvas.width, canvas.height, isMobile, i < hubCount));
     }
@@ -145,7 +145,7 @@ export default function ParticleCanvas() {
           fromIndex: fromIdx,
           toIndex: toIdx,
           progress: Math.random(),
-          speed: 0.003 + Math.random() * 0.003, // Slower: 0.003-0.006 (was 0.005-0.01)
+          speed: 0.004 + Math.random() * 0.004, // Slower: 0.003-0.006 (was 0.005-0.01)
           x: particles[fromIdx].x,
           y: particles[fromIdx].y,
         });
@@ -168,7 +168,7 @@ export default function ParticleCanvas() {
           maxParticles
         );
         if (Math.abs(newCount - particlesRef.current.length) > 5) {
-          const newHubCount = enableConstellation ? Math.max(8, Math.floor(newCount * HUB_RATIO)) : 0;
+          const newHubCount = enableConstellation ? Math.max(6, Math.floor(newCount * HUB_RATIO)) : 0;
           const newParticles: Particle[] = [];
           for (let i = 0; i < newCount; i++) {
             newParticles.push(
@@ -219,39 +219,26 @@ export default function ParticleCanvas() {
       const effectiveOpacity = p.opacity * glowMult;
 
       if (p.isHub && enableConstellation) {
-        // Pulsating glow ring — BIG and bright
-        const pulsePhase = Math.sin(frameCountRef.current * 0.02 + p.x * 0.01) * 0.4 + 0.6;
-        const ringRadius = p.size * 4; // 4x radius (was 3x)
-        const ringOpacity = 0.3 * pulsePhase * glowMult; // 0.3 (was 0.15)
+        // Pulsating glow ring
+        const pulsePhase = Math.sin(frameCountRef.current * 0.03 + p.x) * 0.5 + 0.5;
+        const ringRadius = p.size * 3;
+        const ringOpacity = 0.2 * pulsePhase * glowMult;
 
-        // Outer glow halo
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, ringRadius * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${ringOpacity * 0.08})`;
-        ctx.fill();
-
-        // Main glow ring
         ctx.beginPath();
         ctx.arc(p.x, p.y, ringRadius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${ringOpacity * 0.2})`;
+        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${ringOpacity * 0.25})`;
         ctx.fill();
 
         // Inner bright core
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2); // 2x (was 1.5x)
-        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${Math.min(effectiveOpacity * 0.8, 0.8)})`;
-        ctx.fill();
-
-        // Bright center point
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${Math.min(effectiveOpacity * 0.5, 0.5)})`;
+        ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${Math.min(effectiveOpacity * 1.5, 0.9)})`;
         ctx.fill();
       }
 
       // Core particle
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.isHub ? p.size : p.size, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${p.color[0]},${p.color[1]},${p.color[2]},${Math.min(effectiveOpacity, 1)})`;
       ctx.fill();
     };
@@ -271,20 +258,9 @@ export default function ParticleCanvas() {
 
           if (dist < maxDist) {
             const opacity = (1 - dist / maxDist) * maxOpacity;
-
-            // Hub-to-hub: draw glow line underneath
-            if (bothHub) {
-              ctx.beginPath();
-              ctx.strokeStyle = `rgba(167,139,250,${opacity * 0.15})`;
-              ctx.lineWidth = 4;
-              ctx.moveTo(pts[i].x, pts[i].y);
-              ctx.lineTo(pts[j].x, pts[j].y);
-              ctx.stroke();
-            }
-
             ctx.beginPath();
             ctx.strokeStyle = `rgba(167,139,250,${opacity})`;
-            ctx.lineWidth = bothHub ? 1.5 : 0.5; // 1.5 for hub-to-hub (was 0.8)
+            ctx.lineWidth = bothHub ? 1 : 0.5;
             ctx.moveTo(pts[i].x, pts[i].y);
             ctx.lineTo(pts[j].x, pts[j].y);
             ctx.stroke();
@@ -313,22 +289,16 @@ export default function ParticleCanvas() {
         packet.x = from.x + (to.x - from.x) * packet.progress;
         packet.y = from.y + (to.y - from.y) * packet.progress;
 
-        // Draw glow trail — 15px radius (was 6)
+        // Draw glow trail
         ctx.beginPath();
-        ctx.arc(packet.x, packet.y, 15, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(167,139,250,0.15)";
+        ctx.arc(packet.x, packet.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(167,139,250,0.12)";
         ctx.fill();
 
-        // Draw bright dot — 5px (was 2)
+        // Draw bright dot
         ctx.beginPath();
-        ctx.arc(packet.x, packet.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(220,210,255,0.7)";
-        ctx.fill();
-
-        // Bright core
-        ctx.beginPath();
-        ctx.arc(packet.x, packet.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
+        ctx.arc(packet.x, packet.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(196,181,253,0.7)";
         ctx.fill();
 
         // When arrived, bounce to nearest different hub
