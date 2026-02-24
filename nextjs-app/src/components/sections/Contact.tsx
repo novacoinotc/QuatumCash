@@ -61,7 +61,7 @@ export default function Contact() {
   return (
     <section
       id="contacto"
-      className="relative py-[var(--section-padding)]"
+      className="relative overflow-x-clip py-[var(--section-padding)]"
     >
       {/* Background glow */}
       <div

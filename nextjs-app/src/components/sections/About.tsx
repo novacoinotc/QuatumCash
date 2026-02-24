@@ -29,58 +29,60 @@ export default function About() {
       return;
     }
 
-    // Content slides in from left
-    gsap.from(content, {
+    const features = content.querySelectorAll(".about-feature");
+
+    // Scrub-based master timeline
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: isMobile ? "top 85%" : "top 70%",
+        end: isMobile ? "center center" : "60% center",
+        scrub: 1,
+      },
+    });
+
+    // Content enters
+    tl.from(content, {
       opacity: 0,
       x: isMobile ? 0 : -50,
       y: isMobile ? 20 : 0,
-      duration: 0.8,
+      duration: 1,
       ease: "power3.out",
-      scrollTrigger: {
-        trigger: section,
-        start: isMobile ? "top 85%" : "top 70%",
-        toggleActions: "play none none none",
-      },
     });
 
-    // Phone slides in from right with scale
-    gsap.from(visual, {
-      opacity: 0,
-      x: isMobile ? 0 : 50,
-      y: isMobile ? 20 : 0,
-      scale: isMobile ? 1 : 0.9,
-      duration: 0.8,
-      delay: 0.2,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: section,
-        start: isMobile ? "top 85%" : "top 70%",
-        toggleActions: "play none none none",
+    // Phone enters (overlapping slightly)
+    tl.from(
+      visual,
+      {
+        opacity: 0,
+        x: isMobile ? 0 : 50,
+        y: isMobile ? 20 : 0,
+        scale: isMobile ? 1 : 0.9,
+        duration: 1,
+        ease: "power3.out",
       },
-    });
+      "-=0.6"
+    );
 
     // Feature cards stagger
-    const features = content.querySelectorAll(".about-feature");
     if (features.length) {
-      gsap.from(features, {
-        opacity: 0,
-        y: 20,
-        rotateX: isMobile ? 0 : 10,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: features[0],
-          start: isMobile ? "top 90%" : "top 85%",
-          toggleActions: "play none none none",
+      tl.from(
+        features,
+        {
+          opacity: 0,
+          y: 20,
+          rotateX: isMobile ? 0 : 10,
+          duration: 0.5,
+          stagger: 0.15,
+          ease: "power3.out",
         },
-      });
+        "-=0.4"
+      );
     }
 
     return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === section || t.trigger === features[0]) t.kill();
-      });
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
@@ -88,7 +90,7 @@ export default function About() {
     <section
       ref={sectionRef}
       id="sobre-mi"
-      className="relative py-[var(--section-padding)]"
+      className="relative overflow-x-clip py-[var(--section-padding)]"
     >
       {/* Background decorative SVGs */}
       <svg

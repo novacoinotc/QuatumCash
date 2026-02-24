@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import { CHAT_MESSAGES } from "@/lib/constants";
 
 export default function ChatMockup() {
@@ -11,25 +11,54 @@ export default function ChatMockup() {
   useEffect(() => {
     if (!messagesRef.current || !wrapperRef.current) return;
 
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
     const msgEls = messagesRef.current.querySelectorAll(".chat-msg");
+    const typingEl = messagesRef.current.querySelector(".chat-typing-indicator");
     if (msgEls.length === 0) return;
+
+    if (prefersReduced) {
+      gsap.set(msgEls, { opacity: 1, y: 0 });
+      if (typingEl) gsap.set(typingEl, { opacity: 0 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       gsap.set(msgEls, { opacity: 0, y: 20 });
+      if (typingEl) gsap.set(typingEl, { opacity: 0 });
 
-      ScrollTrigger.create({
-        trigger: wrapperRef.current,
-        start: "top 85%",
-        once: true,
-        onEnter: () => {
-          gsap.to(msgEls, {
+      // Scrub-based progressive message reveal
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: wrapperRef.current,
+          start: "top 85%",
+          end: "bottom 40%",
+          scrub: 1,
+        },
+      });
+
+      // Reveal messages progressively
+      msgEls.forEach((msg, i) => {
+        const isQC = msg.classList.contains("chat-msg-qc");
+
+        // Show typing indicator before QC messages (except the first message if it's user)
+        if (isQC && typingEl) {
+          tl.to(typingEl, { opacity: 1, duration: 0.2 }, i * 0.3);
+          tl.to(typingEl, { opacity: 0, duration: 0.1 }, i * 0.3 + 0.15);
+        }
+
+        tl.to(
+          msg,
+          {
             opacity: 1,
             y: 0,
-            duration: 0.5,
-            stagger: 0.3,
+            duration: 0.3,
             ease: "power2.out",
-          });
-        },
+          },
+          i * 0.3
+        );
       });
     }, wrapperRef);
 
@@ -47,9 +76,9 @@ export default function ChatMockup() {
         }}
       />
 
-      {/* Floating badge icons */}
+      {/* Floating badge icons — hidden on mobile */}
       <div
-        className="chat-badge-icon chat-badge-fast absolute left-[-30px] top-[15%] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform"
+        className="chat-badge-icon chat-badge-fast absolute left-[-30px] top-[15%] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform max-md:hidden"
         style={{
           background: "rgba(244,163,58,0.1)",
           border: "1px solid rgba(244,163,58,0.2)",
@@ -69,7 +98,7 @@ export default function ChatMockup() {
         </svg>
       </div>
       <div
-        className="chat-badge-icon chat-badge-lock absolute right-[-30px] top-[30%] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform"
+        className="chat-badge-icon chat-badge-lock absolute right-[-30px] top-[30%] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform max-md:hidden"
         style={{
           background: "rgba(167,139,250,0.1)",
           border: "1px solid rgba(167,139,250,0.2)",
@@ -89,7 +118,7 @@ export default function ChatMockup() {
         </svg>
       </div>
       <div
-        className="chat-badge-icon chat-badge-check absolute bottom-[15%] right-[-25px] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform"
+        className="chat-badge-icon chat-badge-check absolute bottom-[15%] right-[-25px] z-[1] flex h-9 w-9 items-center justify-center rounded-full will-change-transform max-md:hidden"
         style={{
           background: "rgba(34,197,94,0.1)",
           border: "1px solid rgba(34,197,94,0.2)",
@@ -110,7 +139,7 @@ export default function ChatMockup() {
       </div>
 
       {/* Chat window */}
-      <div className="chat-window relative z-[2] w-[300px] overflow-hidden rounded-[20px] border-[1.5px] border-[rgba(167,139,250,0.2)] bg-[#111328] shadow-[0_0_50px_rgba(124,58,237,0.06),0_0_100px_rgba(236,72,153,0.03)]">
+      <div className="chat-window relative z-[2] w-[280px] overflow-hidden rounded-[20px] border-[1.5px] border-[rgba(167,139,250,0.2)] bg-[#111328] shadow-[0_0_50px_rgba(124,58,237,0.06),0_0_100px_rgba(236,72,153,0.03)] md:w-[300px]">
         {/* Gradient border overlay */}
         <div
           className="pointer-events-none absolute inset-[-1.5px] rounded-[20px] p-[1.5px]"
@@ -153,52 +182,73 @@ export default function ChatMockup() {
         >
           {CHAT_MESSAGES.map((msg, i) => {
             const isUser = msg.sender === "user";
+            const isQC = msg.sender === "qc";
             const isConfirm = "isConfirm" in msg && msg.isConfirm;
 
             return (
-              <div
-                key={i}
-                className={`chat-msg flex flex-col ${isUser ? "items-end" : "items-start"}`}
-              >
-                {isConfirm ? (
-                  <div className="flex max-w-[85%] items-center gap-2 rounded-[14px] rounded-bl-[4px] border border-[rgba(34,197,94,0.2)] bg-[rgba(34,197,94,0.08)] px-[14px] py-[10px] text-[0.78rem] font-semibold leading-[1.5] text-[#22C55E]">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      className="shrink-0"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    {msg.text}
-                  </div>
-                ) : "html" in msg && msg.html ? (
-                  <div
-                    className={`max-w-[85%] rounded-[14px] px-[14px] py-[10px] text-[0.78rem] leading-[1.5] ${
-                      isUser
-                        ? "rounded-br-[4px] border border-[rgba(79,70,229,0.2)] bg-[rgba(79,70,229,0.15)] text-[#CBD5E1]"
-                        : "rounded-bl-[4px] border border-[#1E2044] bg-[rgba(17,19,40,0.8)] text-[#CBD5E1]"
-                    }`}
-                    dangerouslySetInnerHTML={{ __html: msg.html }}
-                  />
-                ) : (
-                  <div
-                    className={`max-w-[85%] rounded-[14px] px-[14px] py-[10px] text-[0.78rem] leading-[1.5] ${
-                      isUser
-                        ? "rounded-br-[4px] border border-[rgba(79,70,229,0.2)] bg-[rgba(79,70,229,0.15)] text-[#CBD5E1]"
-                        : "rounded-bl-[4px] border border-[#1E2044] bg-[rgba(17,19,40,0.8)] text-[#CBD5E1]"
-                    }`}
-                  >
-                    {msg.text}
+              <React.Fragment key={i}>
+                {/* Typing indicator before QC messages */}
+                {isQC && i > 0 && (
+                  <div className="chat-typing-indicator flex items-start">
+                    <div className="flex items-center gap-1 rounded-[14px] rounded-bl-[4px] border border-[#1E2044] bg-[rgba(17,19,40,0.8)] px-[14px] py-[10px]">
+                      <span
+                        className="inline-block h-[6px] w-[6px] rounded-full bg-[var(--gray-500)]"
+                        style={{ animation: "typing-bounce 1.4s ease-in-out infinite" }}
+                      />
+                      <span
+                        className="inline-block h-[6px] w-[6px] rounded-full bg-[var(--gray-500)]"
+                        style={{ animation: "typing-bounce 1.4s ease-in-out infinite 0.2s" }}
+                      />
+                      <span
+                        className="inline-block h-[6px] w-[6px] rounded-full bg-[var(--gray-500)]"
+                        style={{ animation: "typing-bounce 1.4s ease-in-out infinite 0.4s" }}
+                      />
+                    </div>
                   </div>
                 )}
-                <span className="mt-[3px] px-1 text-[0.62rem] text-[#475569]">
-                  {msg.time}
-                </span>
-              </div>
+                <div
+                  className={`chat-msg flex flex-col ${isUser ? "chat-msg-user items-end" : "chat-msg-qc items-start"}`}
+                >
+                  {isConfirm ? (
+                    <div className="flex max-w-[85%] items-center gap-2 rounded-[14px] rounded-bl-[4px] border border-[rgba(34,197,94,0.2)] bg-[rgba(34,197,94,0.08)] px-[14px] py-[10px] text-[0.78rem] font-semibold leading-[1.5] text-[#22C55E]">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        className="shrink-0"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {msg.text}
+                    </div>
+                  ) : "html" in msg && msg.html ? (
+                    <div
+                      className={`max-w-[85%] rounded-[14px] px-[14px] py-[10px] text-[0.78rem] leading-[1.5] ${
+                        isUser
+                          ? "rounded-br-[4px] border border-[rgba(79,70,229,0.2)] bg-[rgba(79,70,229,0.15)] text-[#CBD5E1]"
+                          : "rounded-bl-[4px] border border-[#1E2044] bg-[rgba(17,19,40,0.8)] text-[#CBD5E1]"
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: msg.html }}
+                    />
+                  ) : (
+                    <div
+                      className={`max-w-[85%] rounded-[14px] px-[14px] py-[10px] text-[0.78rem] leading-[1.5] ${
+                        isUser
+                          ? "rounded-br-[4px] border border-[rgba(79,70,229,0.2)] bg-[rgba(79,70,229,0.15)] text-[#CBD5E1]"
+                          : "rounded-bl-[4px] border border-[#1E2044] bg-[rgba(17,19,40,0.8)] text-[#CBD5E1]"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  )}
+                  <span className="mt-[3px] px-1 text-[0.62rem] text-[#475569]">
+                    {msg.time}
+                  </span>
+                </div>
+              </React.Fragment>
             );
           })}
         </div>

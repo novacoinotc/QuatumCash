@@ -12,14 +12,19 @@ import Button from "@/components/ui/Button";
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+  const orbitalRef = useRef<HTMLDivElement>(null);
   const typingText = useTypingEffect(TYPING_PHRASES);
   const glow1Ref = useParallax<HTMLDivElement>({ speed: -30 });
   const glow2Ref = useParallax<HTMLDivElement>({ speed: -50 });
   const glow3Ref = useParallax<HTMLDivElement>({ speed: -20 });
 
   useEffect(() => {
+    const section = sectionRef.current;
     const content = contentRef.current;
-    if (!content) return;
+    const scrollIndicator = scrollIndicatorRef.current;
+    const orbital = orbitalRef.current;
+    if (!section || !content) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -32,9 +37,9 @@ export default function Hero() {
 
     const isMobile = window.innerWidth <= 768;
 
-    const tl = gsap.timeline({ delay: 0.3 });
-
-    tl.from(content.children, {
+    // Entrance animation
+    const entranceTl = gsap.timeline({ delay: 0.3 });
+    entranceTl.from(content.children, {
       opacity: 0,
       y: isMobile ? 20 : 40,
       duration: isMobile ? 0.5 : 0.8,
@@ -42,8 +47,63 @@ export default function Hero() {
       ease: "power3.out",
     });
 
+    // Scroll-away fade: content fades out + scales down as you scroll past
+    const scrollAwayTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "bottom top",
+        scrub: 0.5,
+      },
+    });
+
+    if (isMobile) {
+      scrollAwayTl.to(content, {
+        opacity: 0,
+        y: -30,
+        ease: "none",
+      });
+    } else {
+      scrollAwayTl.to(content, {
+        opacity: 0,
+        scale: 0.95,
+        y: -60,
+        ease: "none",
+      });
+
+      // Parallax depth: orbital rings move slower (creates depth)
+      if (orbital) {
+        scrollAwayTl.to(
+          orbital,
+          {
+            y: -30,
+            ease: "none",
+          },
+          0
+        );
+      }
+    }
+
+    // Scroll indicator fades on scroll start
+    if (scrollIndicator) {
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top top",
+        end: "15% top",
+        scrub: true,
+        onUpdate: (self) => {
+          gsap.set(scrollIndicator, { opacity: 1 - self.progress });
+        },
+      });
+    }
+
     return () => {
-      tl.kill();
+      entranceTl.kill();
+      scrollAwayTl.scrollTrigger?.kill();
+      scrollAwayTl.kill();
+      ScrollTrigger.getAll().forEach((t) => {
+        if (t.trigger === section) t.kill();
+      });
     };
   }, []);
 
@@ -81,7 +141,9 @@ export default function Hero() {
         }}
       />
 
-      <OrbitalRings />
+      <div ref={orbitalRef}>
+        <OrbitalRings />
+      </div>
 
       <div
         ref={contentRef}
@@ -163,7 +225,7 @@ export default function Hero() {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+      <div ref={scrollIndicatorRef} className="absolute bottom-8 left-1/2 -translate-x-1/2">
         <div className="h-8 w-px animate-[scroll-line_2s_infinite] bg-gradient-to-b from-[var(--purple-light)] to-transparent" />
       </div>
     </section>

@@ -1,19 +1,23 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import { SERVICES } from "@/lib/constants";
 import ServiceCard from "@/components/ui/ServiceCard";
 import ExchangeFlow from "@/components/visuals/ExchangeFlow";
 
 export default function Services() {
+  const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const flowRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
     const header = headerRef.current;
+    const flow = flowRef.current;
     const grid = gridRef.current;
-    if (!header || !grid) return;
+    if (!section || !header || !grid) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -25,43 +29,102 @@ export default function Services() {
       return;
     }
 
-    gsap.from(header, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 0.8,
-      ease: "power3.out",
+    // Header scrub
+    const headerTl = gsap.timeline({
       scrollTrigger: {
         trigger: header,
         start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        end: isMobile ? "bottom 70%" : "bottom 60%",
+        scrub: 1,
       },
     });
 
-    gsap.from(grid.children, {
+    headerTl.from(header, {
       opacity: 0,
       y: isMobile ? 20 : 40,
-      rotateX: isMobile ? 0 : 10,
-      duration: 0.6,
-      stagger: isMobile ? 0.05 : 0.1,
+      duration: 1,
       ease: "power3.out",
+    });
+
+    // ExchangeFlow scrub animation
+    if (flow) {
+      const mxnCard = flow.querySelector(".flow-card-left");
+      const cryptoCard = flow.querySelector(".flow-card-right");
+      const hexCenter = flow.querySelector(".flow-center");
+
+      if (mxnCard && cryptoCard && hexCenter) {
+        const flowTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: flow,
+            start: isMobile ? "top 90%" : "top 80%",
+            end: isMobile ? "bottom 60%" : "bottom 50%",
+            scrub: 1,
+          },
+        });
+
+        flowTl.from(mxnCard, {
+          opacity: 0,
+          x: isMobile ? 0 : -60,
+          y: isMobile ? 20 : 0,
+          duration: 1,
+        });
+
+        flowTl.from(
+          hexCenter,
+          {
+            opacity: 0,
+            scale: 0.8,
+            rotate: -30,
+            duration: 1,
+          },
+          "-=0.7"
+        );
+
+        flowTl.from(
+          cryptoCard,
+          {
+            opacity: 0,
+            x: isMobile ? 0 : 60,
+            y: isMobile ? 20 : 0,
+            duration: 1,
+          },
+          "-=0.7"
+        );
+      }
+    }
+
+    // Cards scrub with 3D rotateY flip
+    const cardTl = gsap.timeline({
       scrollTrigger: {
         trigger: grid,
         start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        end: isMobile ? "center center" : "40% center",
+        scrub: 1,
       },
     });
 
+    cardTl.from(grid.children, {
+      opacity: 0,
+      y: isMobile ? 20 : 40,
+      rotateY: isMobile ? 0 : 15,
+      duration: 0.8,
+      stagger: isMobile ? 0.05 : 0.1,
+      ease: "power3.out",
+    });
+
     return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === header || t.trigger === grid) t.kill();
-      });
+      headerTl.scrollTrigger?.kill();
+      headerTl.kill();
+      cardTl.scrollTrigger?.kill();
+      cardTl.kill();
     };
   }, []);
 
   return (
     <section
+      ref={sectionRef}
       id="servicios"
-      className="relative py-[var(--section-padding)]"
+      className="relative overflow-x-clip py-[var(--section-padding)]"
     >
       {/* Background nodes SVG */}
       <svg
@@ -114,7 +177,9 @@ export default function Services() {
           </p>
         </div>
 
-        <ExchangeFlow />
+        <div ref={flowRef}>
+          <ExchangeFlow />
+        </div>
 
         <div
           ref={gridRef}

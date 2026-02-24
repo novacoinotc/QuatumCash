@@ -1,18 +1,20 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import { WHY_ITEMS } from "@/lib/constants";
 import WhyItem from "@/components/ui/WhyItem";
 
 export default function Why() {
+  const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
     const header = headerRef.current;
     const list = listRef.current;
-    if (!header || !list) return;
+    if (!section || !header || !list) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -24,41 +26,75 @@ export default function Why() {
       return;
     }
 
-    gsap.from(header, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 0.8,
-      ease: "power3.out",
+    // Header scrub
+    const headerTl = gsap.timeline({
       scrollTrigger: {
         trigger: header,
         start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        end: isMobile ? "bottom 70%" : "bottom 60%",
+        scrub: 1,
       },
     });
 
-    gsap.from(list.children, {
+    headerTl.from(header, {
       opacity: 0,
-      x: isMobile ? 0 : -30,
-      y: isMobile ? 20 : 0,
-      duration: 0.6,
-      stagger: isMobile ? 0.08 : 0.12,
+      y: isMobile ? 20 : 40,
+      duration: 1,
       ease: "power3.out",
+    });
+
+    // Items reveal sequentially with scrub
+    const listTl = gsap.timeline({
       scrollTrigger: {
         trigger: list,
         start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        end: isMobile ? "bottom 50%" : "bottom 40%",
+        scrub: 1,
       },
     });
 
+    const items = list.children;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const numberEl = item.querySelector(".why-number");
+
+      listTl.from(
+        item,
+        {
+          opacity: 0,
+          x: isMobile ? 0 : -30,
+          y: isMobile ? 20 : 0,
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        i * 0.15
+      );
+
+      // Number scale with back.out easing
+      if (numberEl) {
+        listTl.from(
+          numberEl,
+          {
+            scale: 0.5,
+            opacity: 0,
+            duration: 0.4,
+            ease: "back.out(2)",
+          },
+          i * 0.15
+        );
+      }
+    }
+
     return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === header || t.trigger === list) t.kill();
-      });
+      headerTl.scrollTrigger?.kill();
+      headerTl.kill();
+      listTl.scrollTrigger?.kill();
+      listTl.kill();
     };
   }, []);
 
   return (
-    <section className="relative py-[var(--section-padding)]">
+    <section ref={sectionRef} className="relative overflow-x-clip py-[var(--section-padding)]">
       {/* Wave separator */}
       <svg
         className="pointer-events-none absolute left-0 top-0 w-full"

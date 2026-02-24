@@ -20,7 +20,7 @@ export default function PhoneMockup() {
 
       {/* Connecting lines SVG */}
       <svg
-        className="phone-connect-lines pointer-events-none absolute left-1/2 top-1/2 z-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2"
+        className="phone-connect-lines pointer-events-none absolute left-1/2 top-1/2 z-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 max-md:hidden"
         viewBox="0 0 500 500"
         fill="none"
         aria-hidden="true"
@@ -59,9 +59,9 @@ export default function PhoneMockup() {
         <circle cx="395" cy="180" r="1.5" fill="#F472B6" opacity="0.35" />
       </svg>
 
-      {/* Orbiting icons */}
+      {/* Orbiting icons — hidden on mobile to prevent overflow */}
       <div
-        className="phone-orbit-icon absolute left-[-50px] top-[25%] z-[1] flex h-11 w-11 items-center justify-center rounded-full text-[1.2rem] font-bold"
+        className="phone-orbit-icon absolute left-[-50px] top-[25%] z-[1] flex h-11 w-11 items-center justify-center rounded-full text-[1.2rem] font-bold max-md:hidden"
         style={{
           background: "rgba(244,163,58,0.1)",
           border: "1px solid rgba(244,163,58,0.25)",
@@ -72,7 +72,7 @@ export default function PhoneMockup() {
         <span>&#8383;</span>
       </div>
       <div
-        className="phone-orbit-icon absolute right-[-50px] top-[30%] z-[1] flex h-11 w-11 items-center justify-center rounded-full"
+        className="phone-orbit-icon absolute right-[-50px] top-[30%] z-[1] flex h-11 w-11 items-center justify-center rounded-full max-md:hidden"
         style={{
           background: "rgba(167,139,250,0.1)",
           border: "1px solid rgba(167,139,250,0.2)",
@@ -94,7 +94,7 @@ export default function PhoneMockup() {
         </svg>
       </div>
       <div
-        className="phone-orbit-icon absolute bottom-[20%] left-[-40px] z-[1] flex h-[38px] w-[38px] items-center justify-center rounded-full text-[1.1rem] font-bold"
+        className="phone-orbit-icon absolute bottom-[20%] left-[-40px] z-[1] flex h-[38px] w-[38px] items-center justify-center rounded-full text-[1.1rem] font-bold max-md:hidden"
         style={{
           background: "rgba(129,140,248,0.1)",
           border: "1px solid rgba(129,140,248,0.2)",
@@ -105,7 +105,7 @@ export default function PhoneMockup() {
         <span>$</span>
       </div>
       <div
-        className="phone-orbit-icon absolute bottom-[25%] right-[-45px] z-[1] flex h-[38px] w-[38px] items-center justify-center rounded-full"
+        className="phone-orbit-icon absolute bottom-[25%] right-[-45px] z-[1] flex h-[38px] w-[38px] items-center justify-center rounded-full max-md:hidden"
         style={{
           background: "rgba(244,114,182,0.1)",
           border: "1px solid rgba(244,114,182,0.2)",
@@ -125,8 +125,8 @@ export default function PhoneMockup() {
         </svg>
       </div>
 
-      {/* Phone frame */}
-      <div className="phone-frame relative z-[2] w-[260px] overflow-hidden rounded-[28px] border-[1.5px] border-[rgba(167,139,250,0.25)] bg-[#111328] px-4 pb-[10px] pt-3 shadow-[0_0_60px_rgba(124,58,237,0.08),0_0_120px_rgba(236,72,153,0.04)]">
+      {/* Phone frame — responsive width */}
+      <div className="phone-frame relative z-[2] w-[220px] overflow-hidden rounded-[28px] border-[1.5px] border-[rgba(167,139,250,0.25)] bg-[#111328] px-4 pb-[10px] pt-3 shadow-[0_0_60px_rgba(124,58,237,0.08),0_0_120px_rgba(236,72,153,0.04)] md:w-[260px]">
         {/* Gradient border overlay */}
         <div
           className="pointer-events-none absolute inset-[-1.5px] rounded-[28px] p-[1.5px]"

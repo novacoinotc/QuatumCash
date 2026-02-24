@@ -7,7 +7,7 @@ interface WhyItemProps {
 export default function WhyItem({ number, title, desc }: WhyItemProps) {
   return (
     <div className="flex gap-6 rounded-xl border-b border-[var(--dark-border)]/50 pb-6 last:border-b-0">
-      <span className="font-[var(--font-primary)] text-4xl font-bold gradient-text shrink-0">
+      <span className="why-number font-[var(--font-primary)] text-4xl font-bold gradient-text shrink-0">
         {number}
       </span>
       <div>

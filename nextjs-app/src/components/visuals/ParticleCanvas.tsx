@@ -22,7 +22,7 @@ const COLORS: [number, number, number][] = [
 const CONNECT_DIST_DESKTOP = 150;
 const PARTICLE_DENSITY_DESKTOP = 12000;
 const PARTICLE_DENSITY_MOBILE = 30000;
-const MAX_PARTICLES_DESKTOP = 100;
+const MAX_PARTICLES_DESKTOP = 60;
 const MAX_PARTICLES_MOBILE = 20;
 const MAX_PARTICLES_SMALL = 12;
 
@@ -67,6 +67,10 @@ export default function ParticleCanvas() {
     const isSmallMobile = window.innerWidth <= 480;
     const isTouch =
       "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    const isLowEnd =
+      typeof navigator !== "undefined" &&
+      "hardwareConcurrency" in navigator &&
+      navigator.hardwareConcurrency <= 4;
     const maxParticles = isSmallMobile
       ? MAX_PARTICLES_SMALL
       : isMobile
@@ -75,7 +79,7 @@ export default function ParticleCanvas() {
     const particleDensity = isMobile
       ? PARTICLE_DENSITY_MOBILE
       : PARTICLE_DENSITY_DESKTOP;
-    const skipConnections = isMobile;
+    const skipConnections = isMobile || isLowEnd;
 
     // Sizing
     const resize = () => {
@@ -196,10 +200,9 @@ export default function ParticleCanvas() {
         drawParticle(pts[i]);
       }
 
-      if (!skipConnections) {
-        if (!isMobile || frameCountRef.current % 2 === 0) {
-          connectParticles();
-        }
+      // Draw connections every 2 frames for better performance
+      if (!skipConnections && frameCountRef.current % 2 === 0) {
+        connectParticles();
       }
 
       animationIdRef.current = requestAnimationFrame(animate);

@@ -82,17 +82,17 @@ export default function Navbar() {
           aria-label="Menu"
         >
           <span
-            className={`block h-0.5 w-5 bg-white transition-all ${
+            className={`block h-0.5 w-5 bg-white transition-transform ${
               menuOpen ? "translate-y-2 rotate-45" : ""
             }`}
           />
           <span
-            className={`block h-0.5 w-5 bg-white transition-all ${
+            className={`block h-0.5 w-5 bg-white transition-[transform,opacity] ${
               menuOpen ? "opacity-0" : ""
             }`}
           />
           <span
-            className={`block h-0.5 w-5 bg-white transition-all ${
+            className={`block h-0.5 w-5 bg-white transition-transform ${
               menuOpen ? "-translate-y-2 -rotate-45" : ""
             }`}
           />

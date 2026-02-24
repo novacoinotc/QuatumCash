@@ -1,18 +1,20 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap } from "@/lib/gsap";
 import { STATS } from "@/lib/constants";
 import StatCard from "@/components/ui/StatCard";
 
 export default function Stats() {
+  const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
     const header = headerRef.current;
     const grid = gridRef.current;
-    if (!header || !grid) return;
+    if (!section || !header || !grid) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -24,43 +26,47 @@ export default function Stats() {
       return;
     }
 
-    gsap.from(header, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 0.8,
-      ease: "power3.out",
+    // Scrub-based timeline
+    const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: header,
-        start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
+        trigger: section,
+        start: isMobile ? "top 85%" : "top 75%",
+        end: isMobile ? "center center" : "50% center",
+        scrub: 1,
       },
     });
 
-    gsap.from(grid.children, {
+    tl.from(header, {
       opacity: 0,
       y: isMobile ? 20 : 40,
-      scale: isMobile ? 1 : 0.95,
-      duration: 0.6,
-      stagger: isMobile ? 0.05 : 0.1,
+      duration: 1,
       ease: "power3.out",
-      scrollTrigger: {
-        trigger: grid,
-        start: isMobile ? "top 90%" : "top 80%",
-        toggleActions: "play none none none",
-      },
     });
+
+    tl.from(
+      grid.children,
+      {
+        opacity: 0,
+        y: isMobile ? 20 : 40,
+        scale: 0.9,
+        duration: 0.8,
+        stagger: isMobile ? 0.05 : 0.1,
+        ease: "power3.out",
+      },
+      "-=0.5"
+    );
 
     return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === header || t.trigger === grid) t.kill();
-      });
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
   return (
     <section
+      ref={sectionRef}
       id="estadisticas"
-      className="relative py-[var(--section-padding)]"
+      className="relative overflow-x-clip py-[var(--section-padding)]"
     >
       {/* Background glow */}
       <div
@@ -127,6 +133,7 @@ export default function Stats() {
               decimal={stat.decimal}
               label={stat.label}
               detail={stat.detail}
+              scrub
             />
           ))}
         </div>

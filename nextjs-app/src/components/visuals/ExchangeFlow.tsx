@@ -87,7 +87,7 @@ export default function ExchangeFlow() {
 
       {/* Left: MXN Card */}
       <div
-        className="flow-card flow-card-left relative z-[2] flex items-center gap-[14px] rounded-2xl border border-[rgba(129,140,248,0.2)] px-7 py-5 backdrop-blur-[10px]"
+        className="flow-card flow-card-left relative z-[2] flex items-center gap-[14px] rounded-2xl border border-[rgba(129,140,248,0.2)] px-4 py-5 backdrop-blur-[10px] md:px-7"
         style={{
           background:
             "linear-gradient(135deg, rgba(17,19,40,0.9) 0%, rgba(79,70,229,0.08) 100%)",
@@ -202,7 +202,7 @@ export default function ExchangeFlow() {
 
       {/* Right: CRYPTO Card */}
       <div
-        className="flow-card flow-card-right relative z-[2] flex items-center gap-[14px] rounded-2xl border border-[rgba(244,114,182,0.2)] px-7 py-5 backdrop-blur-[10px]"
+        className="flow-card flow-card-right relative z-[2] flex items-center gap-[14px] rounded-2xl border border-[rgba(244,114,182,0.2)] px-4 py-5 backdrop-blur-[10px] md:px-7"
         style={{
           background:
             "linear-gradient(135deg, rgba(236,72,153,0.06) 0%, rgba(17,19,40,0.9) 100%)",

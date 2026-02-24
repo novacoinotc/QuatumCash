@@ -14,7 +14,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center gap-2.5 font-[var(--font-primary)] font-semibold rounded-xl border-none cursor-pointer transition-all duration-400 relative overflow-hidden";
+    "inline-flex items-center justify-center gap-2.5 font-[var(--font-primary)] font-semibold rounded-xl border-none cursor-pointer transition-[transform,box-shadow] duration-400 relative overflow-hidden";
   const sizes = {
     default: "text-[0.95rem] px-8 py-3.5 min-h-12",
     lg: "text-base px-10 py-4 min-h-14",
