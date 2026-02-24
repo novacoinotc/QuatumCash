@@ -3,12 +3,18 @@
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
 import { WHY_ITEMS } from "@/lib/constants";
+import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import WhyItem from "@/components/ui/WhyItem";
 
 export default function Why() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
+    triggerRef: sectionRef,
+    start: 0.05,
+    end: 0.25,
+  });
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -26,110 +32,117 @@ export default function Why() {
       return;
     }
 
-    // Header scrub
-    const headerTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: header,
-        start: isMobile ? "top 90%" : "top 80%",
-        end: isMobile ? "bottom 70%" : "bottom 60%",
-        scrub: 1,
-      },
-    });
-
     if (isMobile) {
+      // Mobile: simple scrub, NO pin
+      const headerTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: header,
+          start: "top 90%",
+          end: "bottom 70%",
+          scrub: 1,
+        },
+      });
+
       headerTl.from(header, {
         opacity: 0,
         y: 20,
         duration: 1,
         ease: "power3.out",
       });
-    } else {
-      // Desktop: clipPath wipe from bottom
-      headerTl.from(header, {
-        clipPath: "inset(0 0 100% 0)",
-        opacity: 0,
-        y: 30,
-        duration: 1,
-        ease: "power3.out",
+
+      const listTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: list,
+          start: "top 90%",
+          end: "bottom 50%",
+          scrub: 1,
+        },
       });
-    }
 
-    // Items reveal sequentially with scrub
-    const listTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: list,
-        start: isMobile ? "top 90%" : "top 80%",
-        end: isMobile ? "bottom 50%" : "bottom 40%",
-        scrub: 1,
-      },
-    });
+      const items = list.children;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const numberEl = item.querySelector(".why-number");
 
-    const items = list.children;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const numberEl = item.querySelector(".why-number");
-
-      if (isMobile) {
-        // Mobile: simple opacity+y
         listTl.from(
           item,
-          {
-            opacity: 0,
-            y: 20,
-            duration: 0.6,
-            ease: "power3.out",
-          },
+          { opacity: 0, y: 20, duration: 0.6, ease: "power3.out" },
           i * 0.15
         );
 
         if (numberEl) {
           listTl.from(
             numberEl,
-            {
-              scale: 0.5,
-              opacity: 0,
-              duration: 0.4,
-              ease: "back.out(2)",
-            },
+            { scale: 0.5, opacity: 0, duration: 0.4, ease: "back.out(2)" },
             i * 0.15
           );
         }
-      } else {
-        // Desktop: clipPath wipe horizontal + dramatic number
-        listTl.from(
-          item,
-          {
-            clipPath: "inset(0 100% 0 0)",
-            opacity: 0,
-            x: -50,
-            duration: 0.6,
-            ease: "power3.out",
-          },
-          i * 0.2
-        );
+      }
 
-        // Number: dramatic scale with back.out(3)
-        if (numberEl) {
-          listTl.from(
-            numberEl,
-            {
-              scale: 0,
-              rotate: -45,
-              opacity: 0,
-              duration: 0.4,
-              ease: "back.out(3)",
-            },
-            i * 0.2 + 0.1
-          );
-        }
+      return () => {
+        headerTl.scrollTrigger?.kill();
+        headerTl.kill();
+        listTl.scrollTrigger?.kill();
+        listTl.kill();
+      };
+    }
+
+    // Desktop: pinned fullscreen
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=80vh",
+        pin: true,
+        anticipatePin: 1,
+        scrub: 0.5,
+      },
+    });
+
+    // Label
+    const label = header.querySelector(".why-label");
+    if (label) {
+      tl.from(label, { opacity: 0, y: 20, duration: 0.1, ease: "power3.out" });
+    }
+
+    // Heading reveal handled by hook
+
+    // Items: sequential clipPath wipe + number scale
+    const items = list.children;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const numberEl = item.querySelector(".why-number");
+
+      tl.from(
+        item,
+        {
+          clipPath: "inset(0 100% 0 0)",
+          opacity: 0,
+          x: -50,
+          duration: 0.15,
+          ease: "power3.out",
+        },
+        0.3 + i * 0.12
+      );
+
+      if (numberEl) {
+        tl.from(
+          numberEl,
+          {
+            scale: 0,
+            rotate: -45,
+            opacity: 0,
+            duration: 0.1,
+            ease: "back.out(3)",
+          },
+          0.35 + i * 0.12
+        );
       }
     }
 
     return () => {
-      headerTl.scrollTrigger?.kill();
-      headerTl.kill();
-      listTl.scrollTrigger?.kill();
-      listTl.kill();
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
@@ -137,11 +150,11 @@ export default function Why() {
     <section
       ref={sectionRef}
       id="por-que-elegirme"
-      className="perspective-section relative py-[var(--section-padding)]"
+      className="section-pinned perspective-section relative"
+      style={{ zIndex: 2, backgroundColor: "var(--bg-why)" }}
     >
-      {/* Decorative SVGs — overflow wrapper */}
+      {/* Decorative SVGs */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        {/* Wave separator */}
         <svg
           className="absolute left-0 top-0 w-full"
           viewBox="0 0 1440 120"
@@ -171,7 +184,6 @@ export default function Why() {
           </defs>
         </svg>
 
-        {/* Circuit pattern (left) */}
         <svg
           className="absolute left-0 top-0 h-full w-[300px] opacity-60 max-md:hidden"
           viewBox="0 0 300 700"
@@ -225,7 +237,6 @@ export default function Why() {
           </defs>
         </svg>
 
-        {/* Honeycomb mesh (right) */}
         <svg
           className="absolute right-0 top-1/4 h-[400px] w-[250px] opacity-50 max-md:hidden"
           viewBox="0 0 250 400"
@@ -249,16 +260,14 @@ export default function Why() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] px-6">
+      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
           <div ref={headerRef} className="will-change-clip">
-            <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="why-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
               Por que Elegirme
             </span>
-            <h2 className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-              La diferencia esta en
-              <br />
-              <span className="gradient-text">los detalles</span>
+            <h2 ref={headingRef} className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+              La diferencia esta en los detalles
             </h2>
           </div>
           <div ref={listRef} className="flex flex-col gap-6">

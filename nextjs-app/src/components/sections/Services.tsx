@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
 import { SERVICES } from "@/lib/constants";
+import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import ServiceCard from "@/components/ui/ServiceCard";
 import ExchangeFlow from "@/components/visuals/ExchangeFlow";
 
@@ -11,6 +12,11 @@ export default function Services() {
   const headerRef = useRef<HTMLDivElement>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
+    triggerRef: sectionRef,
+    start: 0.03,
+    end: 0.2,
+  });
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -29,115 +35,54 @@ export default function Services() {
       return;
     }
 
-    // Header scrub
-    const headerTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: header,
-        start: isMobile ? "top 90%" : "top 80%",
-        end: isMobile ? "bottom 70%" : "bottom 60%",
-        scrub: 1,
-      },
-    });
+    if (isMobile) {
+      // Mobile: simple scrub, NO pin
+      const headerTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: header,
+          start: "top 90%",
+          end: "bottom 70%",
+          scrub: 1,
+        },
+      });
 
-    headerTl.from(header, {
-      opacity: 0,
-      y: isMobile ? 20 : 40,
-      duration: 1,
-      ease: "power3.out",
-    });
+      headerTl.from(header, {
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        ease: "power3.out",
+      });
 
-    // ExchangeFlow scrub animation
-    if (flow) {
-      const mxnCard = flow.querySelector(".flow-card-left");
-      const cryptoCard = flow.querySelector(".flow-card-right");
-      const hexCenter = flow.querySelector(".flow-center");
-
-      if (mxnCard && cryptoCard && hexCenter) {
+      if (flow) {
         const flowTl = gsap.timeline({
           scrollTrigger: {
             trigger: flow,
-            start: isMobile ? "top 90%" : "top 80%",
-            end: isMobile ? "bottom 60%" : "bottom 50%",
+            start: "top 90%",
+            end: "bottom 60%",
             scrub: 1,
           },
         });
 
-        if (isMobile) {
-          // Mobile: simple animations
-          flowTl.from(mxnCard, {
-            opacity: 0,
-            y: 20,
-            duration: 1,
-          });
+        const mxnCard = flow.querySelector(".flow-card-left");
+        const cryptoCard = flow.querySelector(".flow-card-right");
+        const hexCenter = flow.querySelector(".flow-center");
 
-          flowTl.from(
-            hexCenter,
-            {
-              opacity: 0,
-              scale: 0.8,
-              rotate: -30,
-              duration: 1,
-            },
-            "-=0.7"
-          );
-
-          flowTl.from(
-            cryptoCard,
-            {
-              opacity: 0,
-              y: 20,
-              duration: 1,
-            },
-            "-=0.7"
-          );
-        } else {
-          // Desktop: dramatic 3D entrance
-          flowTl.from(mxnCard, {
-            opacity: 0,
-            x: -120,
-            rotateY: 30,
-            scale: 0.7,
-            duration: 1,
-          });
-
-          flowTl.from(
-            hexCenter,
-            {
-              opacity: 0,
-              scale: 0,
-              rotate: -180,
-              duration: 1,
-              ease: "elastic.out(1, 0.6)",
-            },
-            "-=0.7"
-          );
-
-          flowTl.from(
-            cryptoCard,
-            {
-              opacity: 0,
-              x: 120,
-              rotateY: -30,
-              scale: 0.7,
-              duration: 1,
-            },
-            "-=0.7"
-          );
+        if (mxnCard && cryptoCard && hexCenter) {
+          flowTl.from(mxnCard, { opacity: 0, y: 20, duration: 1 });
+          flowTl.from(hexCenter, { opacity: 0, scale: 0.8, rotate: -30, duration: 1 }, "-=0.7");
+          flowTl.from(cryptoCard, { opacity: 0, y: 20, duration: 1 }, "-=0.7");
         }
       }
-    }
 
-    // Cards scrub with alternating 3D rotateY
-    const cardTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: grid,
-        start: isMobile ? "top 90%" : "top 80%",
-        end: isMobile ? "center center" : "40% center",
-        scrub: 1,
-      },
-    });
+      const cardTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: grid,
+          start: "top 90%",
+          end: "center center",
+          scrub: 1,
+        },
+      });
 
-    if (isMobile) {
       cardTl.from(grid.children, {
         opacity: 0,
         y: 20,
@@ -145,29 +90,71 @@ export default function Services() {
         stagger: 0.05,
         ease: "power3.out",
       });
-    } else {
-      // Alternating rotateY per card index
-      const cards = Array.from(grid.children);
-      cards.forEach((card, i) => {
-        cardTl.from(
-          card,
-          {
-            opacity: 0,
-            y: 40,
-            rotateY: i % 2 === 0 ? 25 : -25,
-            duration: 0.8,
-            ease: "power3.out",
-          },
-          i * 0.1
-        );
-      });
+
+      return () => {
+        headerTl.scrollTrigger?.kill();
+        headerTl.kill();
+        cardTl.scrollTrigger?.kill();
+        cardTl.kill();
+      };
     }
 
+    // Desktop: pinned fullscreen
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=100vh",
+        pin: true,
+        anticipatePin: 1,
+        scrub: 0.5,
+      },
+    });
+
+    // Label + subtitle
+    const label = header.querySelector(".services-label");
+    const subtitle = header.querySelector(".services-subtitle");
+    if (label) {
+      tl.from(label, { opacity: 0, y: 20, duration: 0.1, ease: "power3.out" });
+    }
+    // Heading reveal handled by hook
+
+    if (subtitle) {
+      tl.from(subtitle, { opacity: 0, y: 20, duration: 0.12, ease: "power3.out" }, 0.2);
+    }
+
+    // ExchangeFlow dramatic entrance
+    if (flow) {
+      const mxnCard = flow.querySelector(".flow-card-left");
+      const cryptoCard = flow.querySelector(".flow-card-right");
+      const hexCenter = flow.querySelector(".flow-center");
+
+      if (mxnCard && cryptoCard && hexCenter) {
+        tl.from(mxnCard, { opacity: 0, x: -120, rotateY: 30, scale: 0.7, duration: 0.2 }, 0.25);
+        tl.from(hexCenter, { opacity: 0, scale: 0, rotate: -180, duration: 0.2, ease: "elastic.out(1, 0.6)" }, 0.3);
+        tl.from(cryptoCard, { opacity: 0, x: 120, rotateY: -30, scale: 0.7, duration: 0.2 }, 0.3);
+      }
+    }
+
+    // Service cards stagger with alternating rotateY
+    const cards = Array.from(grid.children);
+    cards.forEach((card, i) => {
+      tl.from(
+        card,
+        {
+          opacity: 0,
+          y: 50,
+          rotateY: i % 2 === 0 ? 25 : -25,
+          duration: 0.15,
+          ease: "power3.out",
+        },
+        0.5 + i * 0.04
+      );
+    });
+
     return () => {
-      headerTl.scrollTrigger?.kill();
-      headerTl.kill();
-      cardTl.scrollTrigger?.kill();
-      cardTl.kill();
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
@@ -175,9 +162,10 @@ export default function Services() {
     <section
       ref={sectionRef}
       id="servicios"
-      className="perspective-section relative py-[var(--section-padding)]"
+      className="section-pinned perspective-section relative"
+      style={{ zIndex: 3, backgroundColor: "var(--bg-services)" }}
     >
-      {/* Background nodes SVG — overflow wrapper */}
+      {/* Background nodes SVG */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
         <svg
           className="absolute inset-0 h-full w-full opacity-50 max-md:hidden"
@@ -213,17 +201,15 @@ export default function Services() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] px-6">
+      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div ref={headerRef} className="mb-12 text-center">
-          <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+          <span className="services-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
             Servicios
           </span>
-          <h2 className="mb-4 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-            Todo lo que necesitas,
-            <br />
-            <span className="gradient-text">en un solo lugar</span>
+          <h2 ref={headingRef} className="mb-4 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+            Todo lo que necesitas, en un solo lugar
           </h2>
-          <p className="mx-auto max-w-xl text-[var(--gray-400)]">
+          <p className="services-subtitle mx-auto max-w-xl text-[var(--gray-400)]">
             Desde la compra-venta de criptomonedas hasta analisis forense de
             wallets. Soluciones integrales respaldadas por la tecnologia de
             NovaCoin.

@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { WHATSAPP_URL, NOVACOIN_URL } from "@/lib/constants";
+import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import ChatMockup from "@/components/visuals/ChatMockup";
 import Button from "@/components/ui/Button";
 
@@ -10,6 +11,11 @@ export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
+    triggerRef: sectionRef,
+    start: 0.05,
+    end: 0.3,
+  });
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -27,18 +33,16 @@ export default function Contact() {
       return;
     }
 
-    // Scrub-based timeline (converted from fire-once toggleActions)
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: isMobile ? "top 85%" : "top 70%",
-        end: isMobile ? "center center" : "60% center",
-        scrub: 1,
-      },
-    });
-
     if (isMobile) {
-      // Mobile: simple opacity+y
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          end: "center center",
+          scrub: 1,
+        },
+      });
+
       tl.from(content, {
         opacity: 0,
         y: 20,
@@ -56,30 +60,62 @@ export default function Contact() {
         },
         "-=0.6"
       );
-    } else {
-      // Desktop: 3D entrance
-      tl.from(content, {
-        opacity: 0,
-        x: -80,
-        rotateY: 15,
-        duration: 1,
-        ease: "power3.out",
-      });
 
-      tl.from(
-        visual,
-        {
-          opacity: 0,
-          scale: 0.5,
-          rotateY: -20,
-          rotateX: 10,
-          y: 60,
-          duration: 1,
-          ease: "power3.out",
-        },
-        "-=0.6"
-      );
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
     }
+
+    // Desktop: pinned fullscreen
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=60vh",
+        pin: true,
+        anticipatePin: 1,
+        scrub: 0.5,
+      },
+    });
+
+    // Label
+    const label = content.querySelector(".contact-label");
+    if (label) {
+      tl.from(label, { opacity: 0, y: 20, duration: 0.15, ease: "power3.out" });
+    }
+
+    // Heading reveal handled by hook
+
+    // Paragraph + buttons + details
+    const paragraph = content.querySelector(".contact-paragraph");
+    const buttonsRow = content.querySelector(".contact-buttons");
+    const details = content.querySelector(".contact-details");
+
+    if (paragraph) {
+      tl.from(paragraph, { opacity: 0, y: 30, duration: 0.15, ease: "power3.out" }, 0.25);
+    }
+    if (buttonsRow) {
+      tl.from(buttonsRow, { opacity: 0, scale: 0.9, y: 20, duration: 0.15, ease: "back.out(1.4)" }, 0.35);
+    }
+    if (details) {
+      tl.from(details, { opacity: 0, y: 20, duration: 0.12, ease: "power3.out" }, 0.45);
+    }
+
+    // ChatMockup: dramatic 3D entrance
+    tl.from(
+      visual,
+      {
+        opacity: 0,
+        scale: 0.4,
+        rotateY: -25,
+        rotateX: 10,
+        y: 80,
+        duration: 0.35,
+        ease: "power3.out",
+      },
+      0.2
+    );
 
     return () => {
       tl.scrollTrigger?.kill();
@@ -91,11 +127,11 @@ export default function Contact() {
     <section
       ref={sectionRef}
       id="contacto"
-      className="perspective-section relative py-[var(--section-padding)]"
+      className="section-pinned perspective-section relative"
+      style={{ zIndex: 1, backgroundColor: "var(--bg-contact)" }}
     >
-      {/* Background elements — overflow wrapper */}
+      {/* Background elements */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        {/* Background glow */}
         <div
           className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
@@ -104,7 +140,6 @@ export default function Contact() {
           }}
         />
 
-        {/* Concentric orbit rings */}
         <svg
           className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 opacity-60 max-md:hidden"
           viewBox="0 0 600 600"
@@ -128,23 +163,21 @@ export default function Contact() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] px-6">
+      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div ref={contentRef} style={{ perspective: "1000px" }}>
-            <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="contact-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
               Comienza Hoy
             </span>
-            <h2 className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-              Lista para hacer tu
-              <br />
-              <span className="gradient-text">proxima operacion?</span>
+            <h2 ref={headingRef} className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+              Lista para hacer tu proxima operacion?
             </h2>
-            <p className="mb-8 text-[var(--gray-400)]">
+            <p className="contact-paragraph mb-8 text-[var(--gray-400)]">
               Escribeme directamente por WhatsApp y recibe una cotizacion
               personalizada en menos de 2 minutos. Sin compromisos, sin letras
               chiquitas.
             </p>
-            <div className="mb-8 flex flex-wrap gap-4">
+            <div className="contact-buttons mb-8 flex flex-wrap gap-4">
               <Button
                 href={WHATSAPP_URL}
                 target="_blank"
@@ -183,7 +216,7 @@ export default function Contact() {
                 </svg>
               </Button>
             </div>
-            <div className="flex flex-col gap-3 text-sm text-[var(--gray-400)]">
+            <div className="contact-details flex flex-col gap-3 text-sm text-[var(--gray-400)]">
               <div className="flex items-center gap-3">
                 <svg
                   width="18"

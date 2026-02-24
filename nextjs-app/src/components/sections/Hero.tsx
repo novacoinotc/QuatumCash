@@ -49,7 +49,6 @@ export default function Hero() {
 
     // ═══ Entrance animation ═══
     if (isMobile) {
-      // Mobile: simple stagger
       const entranceTl = gsap.timeline({ delay: 0.3 });
       entranceTl.from(content.children, {
         opacity: 0,
@@ -59,10 +58,8 @@ export default function Hero() {
         ease: "power3.out",
       });
     } else {
-      // Desktop: cinematic sequence
       const entranceTl = gsap.timeline({ delay: 0.3 });
 
-      // 1. Badge: drop from above with blur
       if (badge) {
         entranceTl.from(badge, {
           opacity: 0,
@@ -73,13 +70,7 @@ export default function Hero() {
         });
       }
 
-      // 2. Heading: split-text letter by letter with 3D rotateX
       if (heading) {
-        const headingText = heading.textContent || "";
-        // Store for cleanup — skip the gradient span (it has the typing effect)
-        const staticParts = heading.querySelectorAll(":scope > br, :scope > span");
-
-        // Animate the heading as a whole with clipPath wipe
         entranceTl.from(
           heading,
           {
@@ -92,7 +83,6 @@ export default function Hero() {
           "-=0.2"
         );
 
-        // 3. Gradient span: clipPath wipe
         const gradientSpan = heading.querySelector(".gradient-text");
         if (gradientSpan) {
           entranceTl.from(
@@ -107,7 +97,6 @@ export default function Hero() {
         }
       }
 
-      // 4. Subtitle: fade up with blur
       if (subtitle) {
         entranceTl.from(
           subtitle,
@@ -122,7 +111,6 @@ export default function Hero() {
         );
       }
 
-      // 5. Buttons: scale in with elastic ease
       if (buttons) {
         entranceTl.from(
           buttons.children,
@@ -137,7 +125,6 @@ export default function Hero() {
         );
       }
 
-      // 6. Trust badges: fade in stagger
       if (trust) {
         entranceTl.from(
           trust.children,
@@ -153,50 +140,45 @@ export default function Hero() {
       }
     }
 
-    // ═══ Scroll-away: dramatic exit ═══
-    const scrollAwayTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "bottom top",
-        scrub: 0.5,
-      },
-    });
-
-    if (isMobile) {
-      scrollAwayTl.to(content, {
-        opacity: 0,
-        y: -30,
-        ease: "none",
+    // ═══ Pin + Dramatic scroll-away ═══
+    if (!isMobile) {
+      const pinTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "+=50vh",
+          pin: true,
+          anticipatePin: 1,
+          scrub: 0.5,
+        },
       });
-    } else {
-      // Dramatic desktop exit
-      scrollAwayTl.to(content, {
+
+      pinTl.to(content, {
         opacity: 0,
-        scale: 0.85,
-        y: -100,
-        rotateX: 5,
+        scale: 0.8,
+        y: -80,
+        rotateX: 8,
+        filter: "blur(8px)",
         ease: "none",
       });
 
-      // OrbitalRings parallax depth
       if (orbital) {
-        scrollAwayTl.to(
+        pinTl.to(
           orbital,
           {
             y: -50,
             rotateX: 15,
-            scale: 0.95,
+            scale: 0.9,
+            opacity: 0,
             ease: "none",
           },
           0
         );
       }
 
-      // Glow orbs: more pronounced movement
       const glowOrbs = section.querySelectorAll(".hero-glow-orb");
       glowOrbs.forEach((orb, i) => {
-        scrollAwayTl.to(
+        pinTl.to(
           orb,
           {
             y: -80 - i * 30,
@@ -207,35 +189,72 @@ export default function Hero() {
           0
         );
       });
-    }
 
-    // Scroll indicator fades on scroll start
-    if (scrollIndicator) {
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top top",
-        end: "15% top",
-        scrub: true,
-        onUpdate: (self) => {
-          gsap.set(scrollIndicator, { opacity: 1 - self.progress });
+      // Scroll indicator fades on scroll start
+      if (scrollIndicator) {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top top",
+          end: "15% top",
+          scrub: true,
+          onUpdate: (self) => {
+            gsap.set(scrollIndicator, { opacity: 1 - self.progress });
+          },
+        });
+      }
+
+      return () => {
+        pinTl.scrollTrigger?.kill();
+        pinTl.kill();
+        ScrollTrigger.getAll().forEach((t) => {
+          if (t.trigger === section) t.kill();
+        });
+      };
+    } else {
+      // Mobile: simple scroll-away
+      const scrollAwayTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.5,
         },
       });
-    }
 
-    return () => {
-      scrollAwayTl.scrollTrigger?.kill();
-      scrollAwayTl.kill();
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.trigger === section) t.kill();
+      scrollAwayTl.to(content, {
+        opacity: 0,
+        y: -30,
+        ease: "none",
       });
-    };
+
+      if (scrollIndicator) {
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top top",
+          end: "15% top",
+          scrub: true,
+          onUpdate: (self) => {
+            gsap.set(scrollIndicator, { opacity: 1 - self.progress });
+          },
+        });
+      }
+
+      return () => {
+        scrollAwayTl.scrollTrigger?.kill();
+        scrollAwayTl.kill();
+        ScrollTrigger.getAll().forEach((t) => {
+          if (t.trigger === section) t.kill();
+        });
+      };
+    }
   }, []);
 
   return (
     <section
       ref={sectionRef}
       id="inicio"
-      className="perspective-section relative flex min-h-screen items-center justify-center overflow-hidden pt-20"
+      className="section-pinned perspective-section relative flex min-h-screen items-center justify-center overflow-hidden pt-20"
+      style={{ zIndex: 6, backgroundColor: "var(--bg-hero)" }}
     >
       <ParticleCanvas />
 

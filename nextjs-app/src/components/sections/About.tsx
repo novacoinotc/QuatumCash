@@ -2,12 +2,18 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
+import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import PhoneMockup from "@/components/visuals/PhoneMockup";
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
+    triggerRef: sectionRef,
+    start: 0.05,
+    end: 0.3,
+  });
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -31,18 +37,17 @@ export default function About() {
 
     const features = content.querySelectorAll(".about-feature");
 
-    // Scrub-based master timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: isMobile ? "top 85%" : "top 70%",
-        end: isMobile ? "center center" : "60% center",
-        scrub: 1,
-      },
-    });
-
     if (isMobile) {
-      // Mobile: simple opacity+y
+      // Mobile: simple scrub, NO pin
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          end: "center center",
+          scrub: 1,
+        },
+      });
+
       tl.from(content, {
         opacity: 0,
         y: 20,
@@ -74,45 +79,84 @@ export default function About() {
           "-=0.4"
         );
       }
-    } else {
-      // Desktop: cinematic clipPath wipe + 3D phone
-      tl.from(content, {
-        clipPath: "inset(0 100% 0 0)",
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
+    }
+
+    // Desktop: pinned fullscreen with internal scrub sequence
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=100vh",
+        pin: true,
+        anticipatePin: 1,
+        scrub: 0.5,
+      },
+    });
+
+    // 1. Label fades in
+    const label = content.querySelector(".about-label");
+    if (label) {
+      tl.from(label, {
         opacity: 0,
-        duration: 1,
+        y: 20,
+        duration: 0.15,
         ease: "power3.out",
       });
+    }
 
-      // Phone: 3D entrance
+    // 2. Text reveal handled by useScrollTextReveal hook (synced to same trigger)
+
+    // 3. Paragraphs fade in
+    const paragraphs = content.querySelectorAll(".about-paragraph");
+    if (paragraphs.length) {
       tl.from(
-        visual,
+        paragraphs,
         {
           opacity: 0,
-          scale: 0.6,
-          rotateY: -25,
-          rotateX: 10,
-          duration: 1,
+          y: 30,
+          duration: 0.2,
+          stagger: 0.08,
           ease: "power3.out",
         },
-        "-=0.6"
+        0.25
       );
+    }
 
-      // Feature cards: dramatic stagger with 3D
-      if (features.length) {
-        tl.from(
-          features,
-          {
-            opacity: 0,
-            rotateX: 30,
-            scale: 0.85,
-            y: 40,
-            duration: 0.5,
-            stagger: 0.15,
-            ease: "back.out(1.4)",
-          },
-          "-=0.4"
-        );
-      }
+    // 4. Phone 3D entrance
+    tl.from(
+      visual,
+      {
+        opacity: 0,
+        scale: 0.5,
+        rotateY: -30,
+        rotateX: 10,
+        x: 100,
+        duration: 0.3,
+        ease: "power3.out",
+      },
+      0.3
+    );
+
+    // 5. Feature cards stagger
+    if (features.length) {
+      tl.from(
+        features,
+        {
+          opacity: 0,
+          rotateX: 30,
+          scale: 0.85,
+          y: 40,
+          duration: 0.2,
+          stagger: 0.06,
+          ease: "back.out(1.4)",
+        },
+        0.5
+      );
     }
 
     return () => {
@@ -125,9 +169,10 @@ export default function About() {
     <section
       ref={sectionRef}
       id="sobre-mi"
-      className="perspective-section relative py-[var(--section-padding)]"
+      className="section-pinned perspective-section relative"
+      style={{ zIndex: 5, backgroundColor: "var(--bg-about)" }}
     >
-      {/* Background decorative SVGs — wrapped for overflow containment */}
+      {/* Background decorative SVGs */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
         <svg
           className="absolute left-0 top-0 h-full w-[200px] opacity-60 max-md:hidden"
@@ -167,21 +212,16 @@ export default function About() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] px-6">
+      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div ref={contentRef} className="will-change-clip">
-            <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="about-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
               Quien Soy
             </span>
-            <h2 className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-              Detras de cada operacion,
-              <br />
-              hay{" "}
-              <span className="gradient-text">
-                alguien que cuida tu dinero
-              </span>
+            <h2 ref={headingRef} className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+              Detras de cada operacion, hay alguien que cuida tu dinero
             </h2>
-            <p className="mb-4 text-[var(--gray-400)]">
+            <p className="about-paragraph mb-4 text-[var(--gray-400)]">
               Soy operadora profesional de{" "}
               <strong className="text-white">NovaCoin.mx</strong>, la plataforma
               lider de intercambio de criptomonedas en Mexico. Con mas de{" "}
@@ -191,7 +231,7 @@ export default function About() {
               han confiado en mi servicio, me he consolidado como la cuenta P2P
               mas grande del pais.
             </p>
-            <p className="mb-8 text-[var(--gray-400)]">
+            <p className="about-paragraph mb-8 text-[var(--gray-400)]">
               Mi compromiso es brindarte una experiencia impecable: precios
               competitivos que nadie mas te ofrece, tiempos de respuesta que
               desafian lo convencional y una atencion personalizada que te hace

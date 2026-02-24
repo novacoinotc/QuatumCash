@@ -3,12 +3,18 @@
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
 import { STATS } from "@/lib/constants";
+import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import StatCard from "@/components/ui/StatCard";
 
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const headingRef = useScrollTextReveal<HTMLHeadingElement>({
+    triggerRef: sectionRef,
+    start: 0.05,
+    end: 0.3,
+  });
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -26,18 +32,16 @@ export default function Stats() {
       return;
     }
 
-    // Scrub-based timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: isMobile ? "top 85%" : "top 75%",
-        end: isMobile ? "center center" : "50% center",
-        scrub: 1,
-      },
-    });
-
     if (isMobile) {
-      // Mobile: simple opacity+y
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          end: "center center",
+          scrub: 1,
+        },
+      });
+
       tl.from(header, {
         opacity: 0,
         y: 20,
@@ -57,32 +61,52 @@ export default function Stats() {
         },
         "-=0.5"
       );
-    } else {
-      // Desktop: cinematic header + 3D card flip
-      // Header with clipPath wipe
-      tl.from(header, {
-        clipPath: "inset(0 0 100% 0)",
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
+    }
+
+    // Desktop: pinned fullscreen
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=80vh",
+        pin: true,
+        anticipatePin: 1,
+        scrub: 0.5,
+      },
+    });
+
+    // Label
+    const label = header.querySelector(".stats-label");
+    if (label) {
+      tl.from(label, {
         opacity: 0,
-        y: 30,
-        duration: 1,
+        y: 20,
+        duration: 0.15,
         ease: "power3.out",
       });
-
-      // Cards: 3D flip-in
-      tl.from(
-        grid.children,
-        {
-          opacity: 0,
-          rotateX: 45,
-          scale: 0.7,
-          y: 60,
-          duration: 0.8,
-          stagger: 0.12,
-          ease: "back.out(1.2)",
-        },
-        "-=0.5"
-      );
     }
+
+    // Heading text reveal handled by hook
+
+    // Cards: 3D flip-in with slower stagger
+    tl.from(
+      grid.children,
+      {
+        opacity: 0,
+        rotateX: 60,
+        scale: 0.6,
+        y: 80,
+        duration: 0.4,
+        stagger: 0.08,
+        ease: "back.out(1.2)",
+      },
+      0.35
+    );
 
     return () => {
       tl.scrollTrigger?.kill();
@@ -94,11 +118,11 @@ export default function Stats() {
     <section
       ref={sectionRef}
       id="estadisticas"
-      className="perspective-section relative py-[var(--section-padding)]"
+      className="section-pinned perspective-section relative"
+      style={{ zIndex: 4, backgroundColor: "var(--bg-stats)" }}
     >
-      {/* Background decorative elements — overflow wrapper */}
+      {/* Background decorative elements */}
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        {/* Background glow */}
         <div
           className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
@@ -107,7 +131,6 @@ export default function Stats() {
           }}
         />
 
-        {/* Grid pattern SVG */}
         <svg
           className="absolute inset-0 h-full w-full opacity-50"
           viewBox="0 0 1200 400"
@@ -141,15 +164,13 @@ export default function Stats() {
         </svg>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] px-6">
+      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div ref={headerRef} className="will-change-clip mb-12 text-center">
-          <span className="mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+          <span className="stats-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
             Resultados que Hablan
           </span>
-          <h2 className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-            Numeros que respaldan
-            <br />
-            <span className="gradient-text">cada palabra</span>
+          <h2 ref={headingRef} className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+            Numeros que respaldan cada palabra
           </h2>
         </div>
         <div
