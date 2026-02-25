@@ -5,7 +5,7 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { TYPING_PHRASES, WHATSAPP_URL } from "@/lib/constants";
 import { useTypingEffect } from "@/hooks/useTypingEffect";
 import { useParallax } from "@/hooks/useParallax";
-import ParticleCanvas from "@/components/visuals/ParticleCanvas";
+import ConstellationScene from "@/components/visuals/ConstellationScene";
 import OrbitalRings from "@/components/visuals/OrbitalRings";
 import Button from "@/components/ui/Button";
 
@@ -256,7 +256,7 @@ export default function Hero() {
       className="section-pinned perspective-section relative flex min-h-screen items-center justify-center overflow-hidden pt-20"
       style={{ zIndex: 6, backgroundColor: "var(--bg-hero)" }}
     >
-      <ParticleCanvas />
+      <ConstellationScene />
 
       {/* Glow orbs */}
       <div
