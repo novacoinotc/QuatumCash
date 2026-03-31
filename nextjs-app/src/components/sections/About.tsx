@@ -1,331 +1,343 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap } from "@/lib/gsap";
-import { EASE, DUR, STAGGER, MOVE_MOBILE, BLUR, SCRUB } from "@/lib/animation";
-import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { EASE, DUR, STAGGER } from "@/lib/animation";
 import PhoneMockup from "@/components/visuals/PhoneMockup";
+
+/* ── Feature data ── */
+const FEATURES = [
+  {
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+      </svg>
+    ),
+    title: "7 min promedio",
+    desc: "Tiempo de liberacion mas rapido del mercado P2P mexicano",
+  },
+  {
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    title: "Garantia USDT",
+    desc: "Deposito de garantia que protege cada una de tus operaciones",
+  },
+  {
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+      </svg>
+    ),
+    title: "Soporte 24/7",
+    desc: "Atencion premium personalizada a cualquier hora del dia",
+  },
+] as const;
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const visualRef = useRef<HTMLDivElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
-  const eyebrowRef = useRef<HTMLSpanElement>(null);
-  const eyebrowLineRef = useRef<HTMLSpanElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const content = contentRef.current;
-    const visual = visualRef.current;
-    const heading = headingRef.current;
-    if (!section || !content || !visual) return;
+    const track = trackRef.current;
+    const phone = phoneRef.current;
+    if (!section || !track || !phone) return;
 
     const mm = gsap.matchMedia();
 
-    mm.add(
-      {
-        isDesktop: "(min-width: 769px)",
-        isMobile: "(max-width: 768px)",
-        reduceMotion: "(prefers-reduced-motion: reduce)",
-      },
-      (context) => {
-        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
+    /* ── Desktop: fake horizontal scroll ── */
+    mm.add("(min-width: 769px)", () => {
+      const panels = track.querySelectorAll<HTMLElement>(".hscroll-panel");
+      const totalWidth = (panels.length - 1) * window.innerWidth;
 
-        const features = content.querySelectorAll(".about-feature");
-        const eyebrow = eyebrowRef.current;
-        const eyebrowLine = eyebrowLineRef.current;
-        const paragraphs = content.querySelectorAll(".about-paragraph");
+      /* Main horizontal tween — ease MUST be "none" for containerAnimation */
+      const scrollTween = gsap.to(track, {
+        x: -totalWidth,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: () => `+=${totalWidth}`,
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
 
-        // Reduced motion: make everything visible, no animation
-        if (reduceMotion) {
-          gsap.set([content, visual], { autoAlpha: 1, x: 0, y: 0 });
-          gsap.set(features, { autoAlpha: 1, y: 0, x: 0 });
-          if (eyebrow) gsap.set(eyebrow, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
-          if (eyebrowLine) gsap.set(eyebrowLine, { scaleX: 1 });
-          gsap.set(paragraphs, { autoAlpha: 1, y: 0, filter: "blur(0px)" });
-          if (heading) {
-            gsap.set(heading.querySelectorAll(".scroll-word"), {
-              y: 0,
-              autoAlpha: 1,
-              rotateX: 0,
-            });
-          }
-          return;
-        }
+      /* ── Panel 1: Intro reveals ── */
+      const p1 = panels[0];
+      if (p1) {
+        const eyebrow = p1.querySelector(".eyebrow");
+        const eyebrowLine = p1.querySelector(".eyebrow-line");
+        const heading = p1.querySelector("h2");
+        const paragraphs = p1.querySelectorAll(".about-paragraph");
 
-        if (isMobile) {
-          const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: section,
-              start: "top 80%",
-              end: "center center",
-              scrub: SCRUB.text,
-            },
-          });
-
-          tl.from(content, {
+        if (eyebrow) {
+          gsap.from(eyebrow, {
             autoAlpha: 0,
-            y: MOVE_MOBILE.y.enter,
-            duration: 1,
+            x: -30,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
+            scrollTrigger: {
+              containerAnimation: scrollTween,
+              trigger: p1,
+              start: "left 80%",
+              toggleActions: "play none none reset",
+            },
           });
-          tl.from(
-            visual,
-            { autoAlpha: 0, y: 40, duration: 1 },
-            "-=0.6"
-          );
-          if (features.length) {
-            tl.from(
-              features,
-              {
-                autoAlpha: 0,
-                y: 20,
-                stagger: 0.1,
-                duration: 0.5,
-              },
-              "-=0.4"
-            );
-          }
-          return;
         }
 
-        // Desktop: pinned fullscreen with internal scrub
-        if (isDesktop) {
-          const tl = gsap.timeline({
+        if (eyebrowLine) {
+          gsap.from(eyebrowLine, {
+            scaleX: 0,
+            transformOrigin: "left center",
+            duration: DUR.base,
+            ease: EASE.enter,
             scrollTrigger: {
-              trigger: section,
-              start: "top top",
-              end: "+=150vh",
-              pin: true,
-              anticipatePin: 1,
-              scrub: SCRUB.cinematic,
+              containerAnimation: scrollTween,
+              trigger: p1,
+              start: "left 80%",
+              toggleActions: "play none none reset",
             },
           });
+        }
 
-          // Beat 1 (0-0.08): Eyebrow tag
-          if (eyebrow) {
-            tl.from(
-              eyebrow,
-              {
-                autoAlpha: 0,
-                x: -30,
-                filter: "blur(4px)",
-                duration: 0.08,
-                ease: EASE.enterSoft,
-              },
-              0
-            );
-          }
-          if (eyebrowLine) {
-            tl.from(
-              eyebrowLine,
-              {
-                scaleX: 0,
-                transformOrigin: "left center",
-                duration: 0.08,
-                ease: EASE.enter,
-              },
-              0
-            );
-          }
-
-          // Beat 2 (0.05-0.35): Word-by-word heading reveal
-          if (heading) {
-            const words = heading.querySelectorAll(".scroll-word");
-            if (words.length) {
-              const totalDuration = 0.3;
-              const perWord = totalDuration / words.length;
-              words.forEach((word, i) => {
-                const pos = 0.05 + i * perWord;
-                tl.fromTo(
-                  word,
-                  {
-                    autoAlpha: 0,
-                    y: 60,
-                    rotateX: -40,
-                  },
-                  {
-                    autoAlpha: 1,
-                    y: 0,
-                    rotateX: 0,
-                    duration: DUR.slow / 10,
-                    ease: EASE.enter,
-                  },
-                  pos
-                );
-              });
-            }
-          }
-
-          // Beat 3 (0.3-0.5): Paragraphs with blur
-          if (paragraphs.length) {
-            tl.from(
-              paragraphs,
-              {
-                autoAlpha: 0,
-                y: 40,
-                filter: BLUR.subtle,
-                stagger: STAGGER.medium,
-                duration: 0.15,
-                ease: EASE.enterSoft,
-              },
-              0.3
-            );
-          }
-
-          // Beat 4 (0.35-0.65): Phone mockup 3D entrance
-          tl.from(
-            visual,
-            {
+        if (heading) {
+          /* Word-by-word reveal */
+          const words = heading.querySelectorAll(".about-word");
+          if (words.length) {
+            gsap.from(words, {
               autoAlpha: 0,
-              scale: 0.7,
-              rotateY: -20,
-              x: 80,
-              duration: 0.3,
+              y: 50,
+              rotateX: -30,
+              stagger: STAGGER.tight,
+              duration: DUR.fast,
               ease: EASE.enter,
-            },
-            0.35
-          );
-
-          // Once phone is visible, add continuous float
-          tl.add(() => {
-            gsap.to(visual, {
-              y: "random(-3,3)",
-              duration: "random(3,5)",
-              repeat: -1,
-              yoyo: true,
-              ease: "sine.inOut",
-            });
-          }, 0.65);
-
-          // Beat 5 (0.55-0.85): Feature cards stagger
-          if (features.length) {
-            tl.from(
-              features,
-              {
-                autoAlpha: 0,
-                x: -40,
-                rotateY: 8,
-                stagger: 0.07,
-                duration: 0.12,
-                ease: EASE.spring,
+              scrollTrigger: {
+                containerAnimation: scrollTween,
+                trigger: p1,
+                start: "left 75%",
+                toggleActions: "play none none reset",
               },
-              0.55
-            );
+            });
           }
+        }
+
+        if (paragraphs.length) {
+          gsap.from(paragraphs, {
+            autoAlpha: 0,
+            y: 40,
+            stagger: STAGGER.medium,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
+            scrollTrigger: {
+              containerAnimation: scrollTween,
+              trigger: p1,
+              start: "left 65%",
+              toggleActions: "play none none reset",
+            },
+          });
         }
       }
-    );
+
+      /* ── Panel 2: Feature cards stagger ── */
+      const p2 = panels[1];
+      if (p2) {
+        const cards = p2.querySelectorAll(".feature-card");
+        gsap.from(cards, {
+          autoAlpha: 0,
+          y: 60,
+          stagger: 0.15,
+          duration: DUR.base,
+          ease: EASE.spring,
+          scrollTrigger: {
+            containerAnimation: scrollTween,
+            trigger: p2,
+            start: "left center",
+            toggleActions: "play none none reset",
+          },
+        });
+      }
+
+      /* ── Panel 3: Phone 3D entrance ── */
+      const p3 = panels[2];
+      if (p3) {
+        gsap.from(phone, {
+          autoAlpha: 0,
+          scale: 0.8,
+          rotateY: -15,
+          duration: DUR.slow,
+          ease: EASE.enter,
+          scrollTrigger: {
+            containerAnimation: scrollTween,
+            trigger: p3,
+            start: "left center",
+            toggleActions: "play none none reset",
+          },
+        });
+
+        const trustText = p3.querySelector(".trust-text");
+        if (trustText) {
+          gsap.from(trustText, {
+            autoAlpha: 0,
+            y: 30,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
+            scrollTrigger: {
+              containerAnimation: scrollTween,
+              trigger: p3,
+              start: "left 40%",
+              toggleActions: "play none none reset",
+            },
+          });
+        }
+      }
+
+      return () => {
+        scrollTween.kill();
+      };
+    });
+
+    /* ── Mobile: stacked panels with simple scroll-reveals ── */
+    mm.add("(max-width: 768px)", () => {
+      const panels = track.querySelectorAll<HTMLElement>(".hscroll-panel");
+
+      panels.forEach((panel) => {
+        const children = panel.querySelectorAll(
+          ".eyebrow, h2, .about-paragraph, .feature-card, .phone-wrapper, .trust-text"
+        );
+
+        gsap.from(children, {
+          autoAlpha: 0,
+          y: 40,
+          stagger: STAGGER.small,
+          duration: DUR.base,
+          ease: EASE.enterSoft,
+          scrollTrigger: {
+            trigger: panel,
+            start: "top 80%",
+            toggleActions: "play none none reset",
+          },
+        });
+      });
+    });
+
+    /* ── Reduced motion ── */
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      gsap.set(track.querySelectorAll(".hscroll-panel *"), {
+        autoAlpha: 1,
+        x: 0,
+        y: 0,
+        scale: 1,
+        rotateY: 0,
+      });
+    });
 
     return () => mm.revert();
   }, []);
+
+  /* ── Utility: wrap each word in a span for word-by-word reveals ── */
+  function wordWrap(text: string) {
+    return text.split(" ").map((word, i) => (
+      <span
+        key={i}
+        className="about-word inline-block"
+        style={{ perspective: "600px" }}
+      >
+        {word}
+        {i < text.split(" ").length - 1 ? "\u00A0" : ""}
+      </span>
+    ));
+  }
 
   return (
     <section
       ref={sectionRef}
       id="sobre-mi"
-      className="section-pinned perspective-section relative"
-      style={{ zIndex: 5, backgroundColor: "var(--bg-about)" }}
+      className="relative overflow-hidden"
+      style={{ background: "var(--bg-elevated)" }}
     >
-      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        <svg
-          className="absolute left-0 top-0 h-full w-[200px] opacity-60 max-md:hidden"
-          viewBox="0 0 200 800"
-          fill="none"
-        >
-          <path
-            d="M100,0 C150,80 50,160 100,240 C150,320 50,400 100,480 C150,560 50,640 100,720 C130,780 80,800 100,800"
-            stroke="url(#about-helix-g)"
-            strokeWidth="0.6"
-            opacity="0.12"
-            fill="none"
-            strokeDasharray="5 8"
-          >
-            <animate attributeName="stroke-dashoffset" from="0" to="-130" dur="6s" repeatCount="indefinite" />
-          </path>
-          <defs>
-            <linearGradient id="about-helix-g" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0" />
-              <stop offset="20%" stopColor="#7C3AED" />
-              <stop offset="80%" stopColor="#EC4899" />
-              <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          <div ref={contentRef} className="will-change-clip">
-            <span className="eyebrow mb-4 inline-flex items-center gap-3 font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]" ref={eyebrowRef}>
+      <div ref={trackRef} className="hscroll-track">
+        {/* ── Panel 1: Introduction ── */}
+        <div className="hscroll-panel">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="eyebrow mb-4">
+              <span className="eyebrow-line" />
               Quien Soy
-              <span
-                className="eyebrow-line inline-block h-px w-8 bg-[var(--purple-light)]"
-                ref={eyebrowLineRef}
-              />
-            </span>
-            <h2
-              ref={headingRef}
-              className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white"
-              style={{ perspective: "800px" }}
-            >
-              Detras de cada operacion, hay alguien que cuida tu dinero
-            </h2>
-            <p className="about-paragraph mb-4 text-[var(--gray-400)]">
-              Soy operadora profesional de{" "}
-              <strong className="text-white">NovaCoin.mx</strong>, la plataforma
-              lider de intercambio de criptomonedas en Mexico. Con mas de{" "}
-              <strong className="text-white">700 dias</strong> de trayectoria
-              ininterrumpida y{" "}
-              <strong className="text-white">16,000+ contrapartes</strong> que
-              han confiado en mi servicio, me he consolidado como la cuenta P2P
-              mas grande del pais.
-            </p>
-            <p className="about-paragraph mb-8 text-[var(--gray-400)]">
-              Mi compromiso es brindarte una experiencia impecable: precios
-              competitivos que nadie mas te ofrece, tiempos de respuesta que
-              desafian lo convencional y una atencion personalizada que te hace
-              sentir que tu operacion es la unica que importa. Porque asi es.
-            </p>
-
-            <div className="flex flex-col gap-4" style={{ perspective: "800px" }}>
-              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-                </div>
-                <div>
-                  <strong className="text-sm text-white">Velocidad inigualable</strong>
-                  <span className="block text-xs text-[var(--gray-500)]">7 min promedio de liberacion</span>
-                </div>
-              </div>
-              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                </div>
-                <div>
-                  <strong className="text-sm text-white">Seguridad absoluta</strong>
-                  <span className="block text-xs text-[var(--gray-500)]">Deposito de garantia en USDT</span>
-                </div>
-              </div>
-              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
-                </div>
-                <div>
-                  <strong className="text-sm text-white">Atencion excepcional</strong>
-                  <span className="block text-xs text-[var(--gray-500)]">Servicio premium 24/7</span>
-                </div>
-              </div>
             </div>
-          </div>
 
-          <div ref={visualRef} className="flex justify-center" style={{ perspective: "1000px" }}>
-            <PhoneMockup />
+            <h2 className="mb-6 font-[var(--font-heading)] text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.15] text-[var(--text-1)]">
+              {wordWrap(
+                "Detras de cada operacion, hay alguien que cuida tu dinero"
+              )}
+            </h2>
+
+            <p className="about-paragraph mb-4 max-w-xl text-[var(--text-2)]">
+              Soy operadora profesional de{" "}
+              <strong className="text-[var(--text-1)]">NovaCoin.mx</strong>, la
+              plataforma lider de intercambio de criptomonedas en Mexico. Con
+              mas de{" "}
+              <strong className="text-[var(--text-1)]">700 dias</strong> de
+              trayectoria ininterrumpida y{" "}
+              <strong className="text-[var(--text-1)]">
+                16,000+ contrapartes
+              </strong>
+              .
+            </p>
+
+            <p className="about-paragraph max-w-xl text-[var(--text-2)]">
+              Mi compromiso es brindarte precios competitivos, tiempos de
+              respuesta que desafian lo convencional y atencion personalizada
+              premium.
+            </p>
+          </div>
+        </div>
+
+        {/* ── Panel 2: Features ── */}
+        <div className="hscroll-panel">
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 px-6 sm:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <div
+                key={i}
+                className="feature-card glass rounded-2xl p-8 text-center"
+              >
+                <div className="mb-4 flex justify-center text-[var(--purple-light)]">
+                  {f.icon}
+                </div>
+                <h3 className="mb-2 font-[var(--font-heading)] text-lg font-semibold text-[var(--text-1)]">
+                  {f.title}
+                </h3>
+                <p className="text-sm text-[var(--text-2)]">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Panel 3: Phone visual + trust ── */}
+        <div className="hscroll-panel">
+          <div className="flex flex-col items-center gap-8 px-6">
+            <div
+              ref={phoneRef}
+              className="phone-wrapper"
+              style={{ perspective: "1000px" }}
+            >
+              <PhoneMockup />
+            </div>
+            <p className="trust-text max-w-md text-center text-[var(--text-2)]">
+              La plataforma que{" "}
+              <strong className="text-[var(--text-1)]">
+                83,000+ operadores
+              </strong>{" "}
+              confian para sus transacciones diarias.
+            </p>
           </div>
         </div>
       </div>
-
-      <div className="whisper-divider" />
     </section>
   );
 }

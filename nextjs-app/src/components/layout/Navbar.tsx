@@ -8,6 +8,7 @@ import { NAV_LINKS } from "@/lib/constants";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
@@ -23,13 +24,12 @@ export default function Navbar() {
       ease: "power3.out",
     });
 
-    // Smart show/hide on scroll + scrolled state
+    // Smart show/hide on scroll + scrolled glassmorphism
     const onScroll = () => {
       const currentY = window.scrollY;
-      const isScrolled = currentY > 50;
 
-      // Add/remove scrolled class for backdrop blur
-      nav.classList.toggle("scrolled", isScrolled);
+      // Toggle glassmorphism class directly on the element
+      nav.classList.toggle("scrolled", currentY > 50);
 
       // Hide on scroll down, show on scroll up (only after 300px)
       if (currentY > 300) {
@@ -64,6 +64,24 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Animate mobile overlay links on open
+  useEffect(() => {
+    if (!menuOpen || !overlayRef.current) return;
+
+    const links = overlayRef.current.querySelectorAll(".mobile-nav-link");
+    gsap.fromTo(
+      links,
+      { autoAlpha: 0, y: 30 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: DUR.fast,
+        ease: "power3.out",
+        stagger: 0.06,
+      }
+    );
+  }, [menuOpen]);
+
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       if (!href.startsWith("#")) return;
@@ -76,6 +94,7 @@ export default function Navbar() {
         window.scrollTo({ top, behavior: "smooth" });
       }
       setMenuOpen(false);
+      document.body.style.overflow = "";
     },
     []
   );
@@ -90,6 +109,7 @@ export default function Navbar() {
   return (
     <nav ref={navRef} className="navbar">
       <div className="mx-auto flex max-w-[var(--container-max)] items-center justify-between px-6">
+        {/* Logo */}
         <a href="#" className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-violet-500 to-violet-600 font-[var(--font-primary)] text-sm font-bold text-white">
             Q
@@ -99,14 +119,10 @@ export default function Navbar() {
           </span>
         </a>
 
+        {/* Desktop nav links */}
         <ul
-          className={`nav-menu ${menuOpen ? "active" : ""}`}
-          style={{
-            display: "flex",
-            gap: "8px",
-            listStyle: "none",
-            alignItems: "center",
-          }}
+          className="nav-menu hidden items-center gap-2 md:flex"
+          style={{ listStyle: "none" }}
         >
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
@@ -116,7 +132,7 @@ export default function Navbar() {
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   link.isCta
                     ? "bg-gradient-to-r from-cyan-500 via-violet-600 to-violet-500 text-white"
-                    : "text-[var(--gray-400)] hover:text-[var(--glow-primary)]"
+                    : "text-[var(--gray-400)] hover:text-[var(--cyan)]"
                 }`}
               >
                 {link.label}
@@ -125,25 +141,24 @@ export default function Navbar() {
           ))}
         </ul>
 
+        {/* Mobile hamburger */}
         <button
           onClick={toggleMenu}
-          className={`nav-toggle relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden ${
-            menuOpen ? "active" : ""
-          }`}
+          className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
           aria-label="Menu"
         >
           <span
-            className={`block h-0.5 w-5 bg-white transition-transform ${
+            className={`block h-0.5 w-5 bg-white transition-transform duration-300 ${
               menuOpen ? "translate-y-2 rotate-45" : ""
             }`}
           />
           <span
-            className={`block h-0.5 w-5 bg-white transition-[transform,opacity] ${
+            className={`block h-0.5 w-5 bg-white transition-[transform,opacity] duration-300 ${
               menuOpen ? "opacity-0" : ""
             }`}
           />
           <span
-            className={`block h-0.5 w-5 bg-white transition-transform ${
+            className={`block h-0.5 w-5 bg-white transition-transform duration-300 ${
               menuOpen ? "-translate-y-2 -rotate-45" : ""
             }`}
           />
@@ -152,15 +167,19 @@ export default function Navbar() {
 
       {/* Mobile menu overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 top-0 z-40 flex flex-col items-center justify-center gap-6 bg-[var(--surface-dark)]/95 backdrop-blur-xl md:hidden">
+        <div
+          ref={overlayRef}
+          className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-[var(--surface-dark)]/95 backdrop-blur-xl md:hidden"
+        >
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className={`text-xl font-medium transition-colors hover:text-[var(--glow-primary)] ${
+              className={`mobile-nav-link text-xl font-medium transition-colors hover:text-[var(--cyan)] ${
                 link.isCta ? "gradient-text" : "text-[var(--gray-300)]"
               }`}
+              style={{ visibility: "hidden" }}
             >
               {link.label}
             </a>

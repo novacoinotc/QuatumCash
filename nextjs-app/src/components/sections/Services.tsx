@@ -1,29 +1,80 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { gsap } from "@/lib/gsap";
-import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, SCRUB, GLOW } from "@/lib/animation";
+import { useRef, useEffect, type ReactNode } from "react";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { EASE, DUR, STAGGER } from "@/lib/animation";
 import { SERVICES } from "@/lib/constants";
-import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
-import ServiceCard from "@/components/ui/ServiceCard";
-import ExchangeFlow from "@/components/visuals/ExchangeFlow";
+
+/* ── Inline SVG Icons ── */
+const ICONS: Record<string, ReactNode> = {
+  exchange: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="17 1 21 5 17 9" />
+      <path d="M3 11V9a4 4 0 014-4h14" />
+      <polyline points="7 23 3 19 7 15" />
+      <path d="M21 13v2a4 4 0 01-4 4H3" />
+    </svg>
+  ),
+  dollar: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <line x1="12" y1="1" x2="12" y2="23" />
+      <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+    </svg>
+  ),
+  shield: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  ),
+  card: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+    </svg>
+  ),
+  code: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+      <line x1="14" y1="4" x2="10" y2="20" />
+    </svg>
+  ),
+  search: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <line x1="11" y1="8" x2="11" y2="14" />
+      <line x1="8" y1="11" x2="14" y2="11" />
+    </svg>
+  ),
+};
+
+/* Indices of cards that get the bento-lg treatment */
+const BENTO_LG_INDICES = new Set([0, 4]);
 
 export default function Services() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const flowRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
-    const flow = flowRef.current;
     const grid = gridRef.current;
-    const line = lineRef.current;
     const heading = headingRef.current;
     if (!section || !header || !grid) return;
+
+    /* ── Split heading into words for reveal ── */
+    if (heading && window.innerWidth > 768) {
+      const text = heading.textContent || "";
+      heading.innerHTML = text
+        .split(" ")
+        .map((w) => `<span class="scroll-word inline-block" style="opacity:0;transform:translateY(40px)">${w}&nbsp;</span>`)
+        .join("");
+    }
 
     const mm = gsap.matchMedia();
 
@@ -35,46 +86,32 @@ export default function Services() {
       },
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
+        const cards = cardRefs.current.filter(Boolean) as HTMLDivElement[];
 
-        const cards = Array.from(grid.children) as HTMLElement[];
-
-        /* ── Reduced motion: make everything visible immediately ── */
+        /* ── Reduced motion ── */
         if (reduceMotion) {
           gsap.set([header, ...cards], {
             autoAlpha: 1,
             y: 0,
-            x: 0,
             scale: 1,
             rotateX: 0,
             rotateY: 0,
-            rotation: 0,
             filter: "blur(0px)",
           });
-          if (line) gsap.set(line, { scaleX: 1 });
-          if (flow) {
-            const flowEls = flow.querySelectorAll(
-              ".flow-card-left, .flow-card-right, .flow-center"
-            );
-            gsap.set(flowEls, { autoAlpha: 1, x: 0, scale: 1, rotateY: 0, rotation: 0 });
-          }
           if (heading) {
             gsap.set(heading.querySelectorAll(".scroll-word"), {
               y: 0,
               autoAlpha: 1,
             });
           }
-          // Make icon wrappers visible
-          const icons = grid.querySelectorAll(".service-icon-wrap");
-          gsap.set(icons, { autoAlpha: 1, scale: 1 });
           return;
         }
 
-        /* ── Mobile: separate ScrollTriggers, no 3D ── */
+        /* ── Mobile: simple stagger reveal ── */
         if (isMobile) {
-          // Header
           gsap.from(header, {
             autoAlpha: 0,
-            y: MOVE_MOBILE.y.enter / 2,
+            y: 30,
             duration: DUR.base,
             ease: EASE.enterSoft,
             scrollTrigger: {
@@ -83,24 +120,9 @@ export default function Services() {
             },
           });
 
-          // ExchangeFlow
-          if (flow) {
-            gsap.from(flow, {
-              autoAlpha: 0,
-              y: MOVE_MOBILE.y.enter,
-              duration: DUR.base,
-              ease: EASE.enterSoft,
-              scrollTrigger: {
-                trigger: flow,
-                start: "top 85%",
-              },
-            });
-          }
-
-          // Service cards grid
           gsap.from(cards, {
             autoAlpha: 0,
-            y: MOVE_MOBILE.y.enter,
+            y: 60,
             stagger: STAGGER.small,
             duration: DUR.base,
             ease: EASE.enterSoft,
@@ -113,194 +135,118 @@ export default function Services() {
           return;
         }
 
-        /* ── Desktop: scroll-triggered, NOT pinned ── */
+        /* ── Desktop: scrub timeline ── */
         if (isDesktop) {
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top 60%",
               end: "bottom 20%",
-              scrub: SCRUB.cards,
+              scrub: 1.2,
             },
           });
 
-          /* Beat 1: Section header */
-          // Eyebrow
-          const label = header.querySelector(".eyebrow");
-          if (label) {
-            tl.from(
-              label,
-              { autoAlpha: 0, y: -20, duration: 0.08, ease: EASE.enter },
-              0
-            );
+          /* Beat 1 — Eyebrow */
+          const eyebrow = header.querySelector(".eyebrow");
+          if (eyebrow) {
+            tl.from(eyebrow, {
+              autoAlpha: 0,
+              y: -20,
+              duration: 0.08,
+              ease: EASE.enter,
+            }, 0);
           }
 
-          // Heading word-by-word
+          /* Beat 1 — Heading word-by-word */
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
-            if (words.length) {
-              words.forEach((word, i) => {
-                const pos = 0.02 + i * (0.12 / words.length);
-                tl.to(
-                  word,
-                  {
-                    y: 0,
-                    autoAlpha: 1,
-                    duration: 0.03,
-                    ease: EASE.enter,
-                  },
-                  pos
-                );
-              });
-            }
-          }
-
-          // Subtitle
-          const subtitle = header.querySelector(".services-subtitle");
-          if (subtitle) {
-            tl.from(
-              subtitle,
-              { autoAlpha: 0, y: 20, filter: "blur(3px)", duration: 0.08, ease: EASE.enterSoft },
-              0.12
-            );
-          }
-
-          // Decorative line: scaleX 0 -> 1
-          if (line) {
-            tl.fromTo(
-              line,
-              { scaleX: 0 },
-              { scaleX: 1, duration: DUR.slow / 4, ease: EASE.enter, transformOrigin: "left center" },
-              0.12
-            );
-          }
-
-          /* Beat 2: ExchangeFlow */
-          if (flow) {
-            const mxnCard = flow.querySelector(".flow-card-left");
-            const cryptoCard = flow.querySelector(".flow-card-right");
-            const hexCenter = flow.querySelector(".flow-center");
-            if (mxnCard && cryptoCard && hexCenter) {
-              tl.from(
-                mxnCard,
-                {
-                  autoAlpha: 0,
-                  x: -MOVE.x.enter,
-                  rotateY: 20,
-                  scale: 0.8,
-                  duration: 0.12,
-                  ease: EASE.enter,
-                },
-                0.2
-              );
-              tl.from(
-                hexCenter,
-                {
-                  autoAlpha: 0,
-                  scale: 0,
-                  rotation: -120,
-                  duration: 0.12,
-                  ease: EASE.elastic,
-                },
-                0.27
-              );
-              tl.from(
-                cryptoCard,
-                {
-                  autoAlpha: 0,
-                  x: MOVE.x.enter,
-                  rotateY: -20,
-                  scale: 0.8,
-                  duration: 0.12,
-                  ease: EASE.enter,
-                },
-                0.27
-              );
-            }
-          }
-
-          /* Beat 3: Service cards cascade */
-          tl.from(
-            cards,
-            {
-              autoAlpha: 0,
-              y: MOVE.y.enter,
-              rotateY: -8,
-              stagger: { amount: 0.5, from: "start" },
-              duration: DUR.base / 4,
-              ease: EASE.enterSoft,
-            },
-            0.4
-          );
-
-          // After each card lands, icon pops
-          const icons = grid.querySelectorAll(".service-icon-wrap");
-          if (icons.length) {
-            cards.forEach((_, i) => {
-              const cardLandTime = 0.4 + (0.5 / cards.length) * i + DUR.base / 4;
-              if (icons[i]) {
-                tl.from(
-                  icons[i],
-                  {
-                    scale: 0.5,
-                    autoAlpha: 0,
-                    duration: DUR.fast / 4,
-                    ease: EASE.spring,
-                  },
-                  cardLandTime + 0.15 / 4 // 0.15 delay scaled
-                );
-              }
+            words.forEach((word, i) => {
+              const pos = 0.02 + i * (0.12 / Math.max(words.length, 1));
+              tl.to(word, {
+                y: 0,
+                autoAlpha: 1,
+                duration: 0.03,
+                ease: EASE.enter,
+              }, pos);
             });
           }
 
-          /* Beat 4: Border illumination sweep */
-          const allCardsLandTime = 0.4 + 0.5 + DUR.base / 4 + 0.05;
+          /* Beat 1 — Subtitle */
+          const subtitle = header.querySelector(".services-subtitle");
+          if (subtitle) {
+            tl.from(subtitle, {
+              autoAlpha: 0,
+              y: 20,
+              filter: "blur(3px)",
+              duration: 0.08,
+              ease: EASE.enterSoft,
+            }, 0.12);
+          }
+
+          /* Beat 2 — Cards cascade stagger */
+          tl.from(cards, {
+            autoAlpha: 0,
+            y: 80,
+            scale: 0.95,
+            stagger: { amount: 0.6, from: "start" },
+            duration: DUR.base / 4,
+            ease: EASE.enterSoft,
+          }, 0.2);
+
+          /* Beat 3 — Border illumination sweep */
+          const allCardsLand = 0.2 + 0.6 + DUR.base / 4;
           cards.forEach((card, i) => {
-            const sweepStart = allCardsLandTime + i * 0.1 / 4;
-            tl.to(
-              card,
-              {
-                borderColor: GLOW.primary,
-                duration: DUR.fast / 4,
-                ease: EASE.enter,
-              },
-              sweepStart
-            );
-            tl.to(
-              card,
-              {
-                borderColor: "rgba(0,240,255,0.15)",
-                duration: DUR.fast / 4,
-                ease: EASE.enterSoft,
-              },
-              sweepStart + DUR.fast / 4
-            );
+            const sweepStart = allCardsLand + i * 0.1 / 4;
+            tl.to(card, {
+              borderColor: "rgba(0,240,255,0.6)",
+              duration: DUR.fast / 4,
+              ease: EASE.enter,
+            }, sweepStart);
+            tl.to(card, {
+              borderColor: "rgba(0,240,255,0.15)",
+              duration: DUR.fast / 4,
+              ease: EASE.enterSoft,
+            }, sweepStart + DUR.fast / 4);
           });
 
-          /* Magnetic tilt on service cards (desktop only) */
-          const magneticCards = grid.querySelectorAll<HTMLElement>(".magnetic-card");
-          const handlers: Array<{ el: HTMLElement; move: (e: MouseEvent) => void; leave: () => void }> = [];
+          /* Magnetic tilt on cards */
+          const handlers: Array<{
+            el: HTMLDivElement;
+            move: (e: MouseEvent) => void;
+            leave: () => void;
+          }> = [];
 
-          magneticCards.forEach((card) => {
+          cards.forEach((card) => {
             const handleMove = (e: MouseEvent) => {
               const rect = card.getBoundingClientRect();
               const x = (e.clientX - rect.left) / rect.width;
               const y = (e.clientY - rect.top) / rect.height;
               const rotateY = (x - 0.5) * 16; // max +/-8deg
               const rotateX = (0.5 - y) * 16;
-              card.style.setProperty("--mouse-x", `${x * 100}%`);
-              card.style.setProperty("--mouse-y", `${y * 100}%`);
-              gsap.to(card, { rotateY, rotateX, duration: DUR.fast, ease: EASE.hoverIn, overwrite: true });
+              card.style.setProperty("--mx", `${x * 100}%`);
+              card.style.setProperty("--my", `${y * 100}%`);
+              gsap.to(card, {
+                rotateY,
+                rotateX,
+                duration: DUR.fast,
+                ease: EASE.enterSoft,
+                overwrite: true,
+              });
             };
             const handleLeave = () => {
-              gsap.to(card, { rotateX: 0, rotateY: 0, duration: DUR.fast, ease: EASE.hoverOut, overwrite: true });
+              gsap.to(card, {
+                rotateX: 0,
+                rotateY: 0,
+                duration: DUR.fast,
+                ease: EASE.enterSoft,
+                overwrite: true,
+              });
             };
             card.addEventListener("mousemove", handleMove);
             card.addEventListener("mouseleave", handleLeave);
             handlers.push({ el: card, move: handleMove, leave: handleLeave });
           });
 
-          // Cleanup magnetic listeners
           return () => {
             handlers.forEach(({ el, move, leave }) => {
               el.removeEventListener("mousemove", move);
@@ -321,27 +267,8 @@ export default function Services() {
       className="perspective-section relative"
       style={{ zIndex: 3, backgroundColor: "var(--bg-services)" }}
     >
-      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        <svg className="absolute inset-0 h-full w-full opacity-50 max-md:hidden" viewBox="0 0 1200 800" fill="none">
-          <line x1="100" y1="200" x2="300" y2="100" stroke="#7C3AED" strokeWidth="0.4" opacity="0.1">
-            <animate attributeName="opacity" values="0.05;0.15;0.05" dur="5s" repeatCount="indefinite" />
-          </line>
-          <line x1="300" y1="100" x2="500" y2="250" stroke="#A78BFA" strokeWidth="0.4" opacity="0.1">
-            <animate attributeName="opacity" values="0.05;0.15;0.05" dur="6s" repeatCount="indefinite" />
-          </line>
-          <line x1="700" y1="150" x2="900" y2="300" stroke="#F472B6" strokeWidth="0.4" opacity="0.1">
-            <animate attributeName="opacity" values="0.05;0.12;0.05" dur="4s" repeatCount="indefinite" />
-          </line>
-          <g opacity="0.25"><circle cx="100" cy="200" r="4" fill="#7C3AED" /><circle cx="100" cy="200" r="8" stroke="#7C3AED" strokeWidth="0.5" fill="none" opacity="0.3" /></g>
-          <g opacity="0.2"><circle cx="300" cy="100" r="3" fill="#A78BFA" /></g>
-          <g opacity="0.2"><circle cx="500" cy="250" r="3.5" fill="#F472B6" /></g>
-          <circle r="2" fill="#F472B6" opacity="0.5">
-            <animateMotion dur="8s" repeatCount="indefinite" path="M100,200 L300,100 L500,250 L700,150 L900,300 L1100,200" />
-          </circle>
-        </svg>
-      </div>
-
       <div className="mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
+        {/* Header */}
         <div ref={headerRef} className="mb-12 text-center">
           <span className="eyebrow mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
             <span className="eyebrow-line">Servicios</span>
@@ -358,35 +285,80 @@ export default function Services() {
             wallets. Soluciones integrales respaldadas por la tecnologia de
             NovaCoin.
           </p>
-          <div
-            ref={lineRef}
-            className="mx-auto mt-6 h-px w-24"
-            style={{
-              background: `linear-gradient(90deg, transparent, ${GLOW.secondary}, transparent)`,
-              transformOrigin: "left center",
-            }}
-          />
         </div>
 
-        <div ref={flowRef} style={{ perspective: "1200px" }}>
-          <ExchangeFlow />
-        </div>
-
+        {/* Bento Grid */}
         <div
           ref={gridRef}
-          className="perspective-cards grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="bento"
           style={{ perspective: "800px" }}
         >
-          {SERVICES.map((service) => (
-            <div key={service.title} className="glass-card magnetic-card">
-              <ServiceCard
-                icon={service.icon}
-                title={service.title}
-                desc={service.desc}
-                tags={service.tags}
-              />
-            </div>
-          ))}
+          {SERVICES.map((service, i) => {
+            const isLarge = BENTO_LG_INDICES.has(i);
+            return (
+              <div
+                key={service.title}
+                ref={(el) => {
+                  cardRefs.current[i] = el;
+                }}
+                className={`glass-card magnetic-card relative overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] backdrop-blur-sm transition-colors${
+                  isLarge ? " bento-lg" : ""
+                }`}
+                style={{
+                  padding: isLarge ? "2.5rem" : "1.5rem",
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                {/* Spotlight pseudo — driven by --mx / --my */}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background:
+                      "radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(0,240,255,0.06), transparent 60%)",
+                  }}
+                />
+
+                {/* Icon */}
+                <div
+                  className={`mb-4 inline-flex items-center justify-center rounded-xl border border-[rgba(0,240,255,0.15)] bg-[rgba(0,240,255,0.05)] text-[var(--cyan)]${
+                    isLarge ? " h-14 w-14" : " h-11 w-11"
+                  }`}
+                >
+                  {ICONS[service.icon] ?? null}
+                </div>
+
+                {/* Title */}
+                <h3
+                  className={`mb-2 font-[var(--font-primary)] font-semibold text-white${
+                    isLarge ? " text-xl" : " text-base"
+                  }`}
+                >
+                  {service.title}
+                </h3>
+
+                {/* Description */}
+                <p
+                  className={`mb-4 leading-relaxed text-[var(--gray-400)]${
+                    isLarge ? " text-sm" : " text-[13px]"
+                  }`}
+                >
+                  {service.desc}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {service.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-block rounded-full border border-[rgba(0,240,255,0.12)] bg-[rgba(0,240,255,0.04)] px-3 py-1 text-[11px] font-medium text-[var(--cyan)]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

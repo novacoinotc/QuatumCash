@@ -1,26 +1,61 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { gsap } from "@/lib/gsap";
-import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, SCRUB, GLOW } from "@/lib/animation";
+import { useRef, useEffect, useCallback } from "react";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { EASE, DUR, STAGGER } from "@/lib/animation";
 import { STATS } from "@/lib/constants";
-import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
-import StatCard from "@/components/ui/StatCard";
+
+/* ── Pick 4 high-impact stats: indices 0, 2, 3, 5 ── */
+const SELECTED_INDICES = [0, 2, 3, 5] as const;
+const SELECTED_STATS = SELECTED_INDICES.map((i) => STATS[i]);
+const SLIDE_COUNT = SELECTED_STATS.length;
 
 export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const gridBgRef = useRef<SVGSVGElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const numberRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const labelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const detailRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const suffixRefs = useRef<(HTMLSpanElement | null)[]>([]);
+
+  const setSlideRef = useCallback(
+    (i: number) => (el: HTMLDivElement | null) => {
+      slideRefs.current[i] = el;
+    },
+    []
+  );
+  const setNumberRef = useCallback(
+    (i: number) => (el: HTMLDivElement | null) => {
+      numberRefs.current[i] = el;
+    },
+    []
+  );
+  const setLabelRef = useCallback(
+    (i: number) => (el: HTMLDivElement | null) => {
+      labelRefs.current[i] = el;
+    },
+    []
+  );
+  const setDetailRef = useCallback(
+    (i: number) => (el: HTMLDivElement | null) => {
+      detailRefs.current[i] = el;
+    },
+    []
+  );
+  const setSuffixRef = useCallback(
+    (i: number) => (el: HTMLSpanElement | null) => {
+      suffixRefs.current[i] = el;
+    },
+    []
+  );
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
-    const grid = gridRef.current;
-    const gridBg = gridBgRef.current;
-    const heading = headingRef.current;
-    if (!section || !header || !grid) return;
+    const dotsContainer = dotsRef.current;
+    if (!section) return;
 
     const mm = gsap.matchMedia();
 
@@ -33,196 +68,304 @@ export default function Stats() {
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-        const cards = Array.from(grid.children) as HTMLElement[];
-        const label = header.querySelector(".eyebrow");
+        const slides = slideRefs.current.filter(Boolean) as HTMLDivElement[];
+        const numbers = numberRefs.current.filter(Boolean) as HTMLDivElement[];
+        const labels = labelRefs.current.filter(Boolean) as HTMLDivElement[];
+        const details = detailRefs.current.filter(Boolean) as HTMLDivElement[];
+        const suffixes = suffixRefs.current.filter(Boolean) as HTMLSpanElement[];
+        const dots = dotsContainer
+          ? (Array.from(dotsContainer.children) as HTMLDivElement[])
+          : [];
 
-        // Reduced motion: make everything visible, no animation
+        /* ── Reduced motion ── */
         if (reduceMotion) {
-          gsap.set(header, { autoAlpha: 1, y: 0 });
-          gsap.set(cards, { autoAlpha: 1, y: 0, scale: 1, rotateX: 0 });
-          if (label) gsap.set(label, { autoAlpha: 1, y: 0 });
-          if (heading) {
-            gsap.set(heading.querySelectorAll(".scroll-word"), {
-              y: 0,
-              autoAlpha: 1,
+          slides.forEach((slide, i) => {
+            gsap.set(slide, { autoAlpha: 1 });
+            const stat = SELECTED_STATS[i];
+            const numEl = numbers[i];
+            if (numEl) {
+              const formatted = stat.decimal
+                ? stat.target.toFixed(1)
+                : Math.round(stat.target).toLocaleString("en-US");
+              numEl.textContent = formatted;
+            }
+            if (suffixes[i]) gsap.set(suffixes[i], { autoAlpha: 1, scale: 1 });
+            if (labels[i]) gsap.set(labels[i], { autoAlpha: 1, y: 0 });
+            if (details[i]) gsap.set(details[i], { autoAlpha: 1, y: 0 });
+          });
+          if (header) gsap.set(header, { autoAlpha: 1 });
+          return;
+        }
+
+        /* ── MOBILE: 2-col grid, each card scroll-reveals independently ── */
+        if (isMobile) {
+          // Hide desktop-only dots
+          if (dotsContainer) gsap.set(dotsContainer, { display: "none" });
+
+          // Make all slides visible (they use grid layout on mobile via CSS)
+          slides.forEach((slide) => gsap.set(slide, { position: "relative", autoAlpha: 1 }));
+
+          // Header reveal
+          if (header) {
+            gsap.from(header, {
+              autoAlpha: 0,
+              y: 20,
+              duration: DUR.base,
+              ease: EASE.enterSoft,
+              scrollTrigger: { trigger: header, start: "top 85%" },
             });
           }
+
+          // Each card: counter + reveal
+          slides.forEach((slide, i) => {
+            const stat = SELECTED_STATS[i];
+            const numEl = numbers[i];
+            const labelEl = labels[i];
+            const detailEl = details[i];
+            const suffixEl = suffixes[i];
+
+            // Card entrance
+            gsap.from(slide, {
+              autoAlpha: 0,
+              y: 40,
+              scale: 0.95,
+              duration: DUR.base,
+              ease: EASE.enterSoft,
+              scrollTrigger: { trigger: slide, start: "top 80%" },
+            });
+
+            // Number counter
+            if (numEl) {
+              const proxy = { value: 0 };
+              gsap.to(proxy, {
+                value: stat.target,
+                duration: DUR.slow,
+                snap: { snapTo: stat.decimal ? 0.1 : 1 },
+                ease: EASE.enterSoft,
+                scrollTrigger: { trigger: slide, start: "top 80%" },
+                onUpdate: () => {
+                  const formatted = stat.decimal
+                    ? proxy.value.toFixed(1)
+                    : Math.round(proxy.value).toLocaleString("en-US");
+                  numEl.textContent = formatted;
+                },
+                onComplete: () => {
+                  if (suffixEl) {
+                    gsap.fromTo(
+                      suffixEl,
+                      { autoAlpha: 0, scale: 0.5 },
+                      { autoAlpha: 1, scale: 1, duration: DUR.fast, ease: EASE.spring }
+                    );
+                  }
+                },
+              });
+            }
+
+            // Label + detail
+            if (labelEl) {
+              gsap.from(labelEl, {
+                autoAlpha: 0,
+                y: 15,
+                duration: DUR.base,
+                delay: 0.2,
+                ease: EASE.enterSoft,
+                scrollTrigger: { trigger: slide, start: "top 80%" },
+              });
+            }
+            if (detailEl) {
+              gsap.from(detailEl, {
+                autoAlpha: 0,
+                y: 15,
+                duration: DUR.base,
+                delay: 0.35,
+                ease: EASE.enterSoft,
+                scrollTrigger: { trigger: slide, start: "top 80%" },
+              });
+            }
+          });
+
           return;
         }
 
-        /* ── Mobile: no pin, cards scroll-reveal individually ── */
-        if (isMobile) {
-          // Header
-          gsap.from(header, {
-            autoAlpha: 0,
-            y: MOVE_MOBILE.y.enter / 2,
-            duration: DUR.base,
-            ease: EASE.enterSoft,
-            scrollTrigger: {
-              trigger: header,
-              start: "top 85%",
-            },
-          });
-
-          // Cards stagger
-          gsap.from(cards, {
-            autoAlpha: 0,
-            y: MOVE_MOBILE.y.enter,
-            scale: 0.95,
-            stagger: STAGGER.small,
-            duration: DUR.base,
-            ease: EASE.enterSoft,
-            scrollTrigger: {
-              trigger: grid,
-              start: "top 85%",
-            },
-          });
-
-          return;
-        }
-
-        /* ── Desktop: pinned cinematic scrub ── */
+        /* ── DESKTOP: Pinned full-viewport crossfade slides ── */
         if (isDesktop) {
+          // Initial state: all slides hidden except managed by timeline
+          slides.forEach((slide) => {
+            gsap.set(slide, { autoAlpha: 0 });
+          });
+          labels.forEach((el) => gsap.set(el, { autoAlpha: 0, y: 20 }));
+          details.forEach((el) => gsap.set(el, { autoAlpha: 0, y: 20 }));
+          suffixes.forEach((el) => gsap.set(el, { autoAlpha: 0, scale: 0.5 }));
+
+          // Header starts visible
+          if (header) gsap.set(header, { autoAlpha: 1 });
+
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top top",
-              end: "+=100%",
+              end: `+=${SLIDE_COUNT * 100}vh`,
               pin: true,
               anticipatePin: 1,
-              scrub: SCRUB.cinematic,
+              scrub: 1,
             },
           });
 
-          /* Phase 1 (0%-20%): Section entrance */
-          // Grid background fades in
-          if (gridBg) {
+          const sliceDur = 1 / SLIDE_COUNT; // 0.25 per slide
+
+          SELECTED_STATS.forEach((stat, i) => {
+            const slideEl = slides[i];
+            const numEl = numbers[i];
+            const labelEl = labels[i];
+            const detailEl = details[i];
+            const suffixEl = suffixes[i];
+            const dot = dots[i];
+
+            const slideStart = i * sliceDur;
+            const enterEnd = slideStart + sliceDur * 0.15;
+            const holdEnd = slideStart + sliceDur * 0.8;
+            const slideEnd = slideStart + sliceDur;
+
+            // ── Fade in slide container ──
             tl.fromTo(
-              gridBg,
+              slideEl,
               { autoAlpha: 0 },
-              { autoAlpha: 0.5, duration: 0.2 },
-              0
+              { autoAlpha: 1, duration: sliceDur * 0.1, ease: "none" },
+              slideStart
             );
-          }
 
-          // Eyebrow label
-          if (label) {
-            tl.from(
-              label,
-              { autoAlpha: 0, y: -20, duration: 0.1, ease: EASE.enter },
-              0
-            );
-          }
-
-          // Heading word-by-word with perspective rotation
-          if (heading) {
-            const words = heading.querySelectorAll(".scroll-word");
-            if (words.length) {
-              words.forEach((word, i) => {
-                const pos = 0.02 + i * (0.18 / words.length);
-                tl.to(
-                  word,
-                  {
-                    y: 0,
-                    autoAlpha: 1,
-                    rotateX: 0,
-                    duration: 0.04,
-                    ease: EASE.enter,
+            // ── Number counter via proxy ──
+            if (numEl) {
+              const proxy = { value: 0 };
+              tl.to(
+                proxy,
+                {
+                  value: stat.target,
+                  duration: sliceDur * 0.5,
+                  snap: { snapTo: stat.decimal ? 0.1 : 1 },
+                  ease: EASE.enterSoft,
+                  onUpdate: () => {
+                    const formatted = stat.decimal
+                      ? proxy.value.toFixed(1)
+                      : Math.round(proxy.value).toLocaleString("en-US");
+                    numEl.textContent = formatted;
                   },
-                  pos
-                );
-              });
-              // Set initial rotateX state via GSAP (the hook sets y + opacity)
-              gsap.set(words, { rotateX: -40 });
+                },
+                slideStart + sliceDur * 0.05
+              );
+
+              // Cyan glow peaks during count, then settles
+              tl.fromTo(
+                numEl,
+                { textShadow: "0 0 0px rgba(0,240,255,0)" },
+                {
+                  textShadow: "0 0 40px rgba(0,240,255,0.6), 0 0 80px rgba(0,240,255,0.3)",
+                  duration: sliceDur * 0.35,
+                  ease: EASE.enterSoft,
+                },
+                slideStart + sliceDur * 0.05
+              );
+              tl.to(
+                numEl,
+                {
+                  textShadow: "0 0 15px rgba(0,240,255,0.2), 0 0 0px rgba(0,240,255,0)",
+                  duration: sliceDur * 0.2,
+                  ease: EASE.enterSoft,
+                },
+                slideStart + sliceDur * 0.45
+              );
             }
-          }
 
-          /* Phase 2 (20%-40%): Stat cards fly in */
-          tl.from(
-            cards,
-            {
-              autoAlpha: 0,
-              y: 120,
-              scale: 0.85,
-              stagger: STAGGER.medium,
-              duration: DUR.slow / 4, // relative to timeline
-              ease: EASE.enter,
-            },
-            0.2
-          );
+            // ── Suffix pops ──
+            if (suffixEl) {
+              tl.to(
+                suffixEl,
+                {
+                  autoAlpha: 1,
+                  scale: 1,
+                  duration: sliceDur * 0.1,
+                  ease: EASE.spring,
+                },
+                slideStart + sliceDur * 0.5
+              );
+            }
 
-          // Border flash on landing
-          cards.forEach((card, i) => {
-            const landTime = 0.2 + i * STAGGER.medium + DUR.slow / 4;
-            tl.fromTo(
-              card,
-              { borderColor: "transparent" },
-              {
-                borderColor: GLOW.primary,
-                duration: DUR.fast / 4,
-                ease: EASE.enter,
-              },
-              landTime
-            );
-            tl.to(
-              card,
-              {
-                borderColor: "rgba(0,240,255,0.15)",
-                duration: DUR.fast / 4,
-                ease: EASE.enterSoft,
-              },
-              landTime + DUR.fast / 4
-            );
+            // ── Label fade in ──
+            if (labelEl) {
+              tl.to(
+                labelEl,
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  duration: sliceDur * 0.12,
+                  ease: EASE.enterSoft,
+                },
+                enterEnd
+              );
+            }
+
+            // ── Detail fade in ──
+            if (detailEl) {
+              tl.to(
+                detailEl,
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  duration: sliceDur * 0.12,
+                  ease: EASE.enterSoft,
+                },
+                enterEnd + sliceDur * 0.05
+              );
+            }
+
+            // ── Active dot ──
+            if (dot) {
+              tl.to(
+                dot,
+                {
+                  backgroundColor: "var(--cyan)",
+                  scale: 1.5,
+                  duration: sliceDur * 0.05,
+                  ease: "none",
+                },
+                slideStart
+              );
+              // Deactivate dot at slide exit
+              if (i < SLIDE_COUNT - 1) {
+                tl.to(
+                  dot,
+                  {
+                    backgroundColor: "transparent",
+                    scale: 1,
+                    duration: sliceDur * 0.05,
+                    ease: "none",
+                  },
+                  holdEnd
+                );
+              }
+            }
+
+            // ── Exit: fade out in the last 20% of the slide range ──
+            if (i < SLIDE_COUNT - 1) {
+              tl.to(
+                slideEl,
+                {
+                  autoAlpha: 0,
+                  y: -30,
+                  duration: sliceDur * 0.2,
+                  ease: EASE.exit,
+                },
+                holdEnd
+              );
+              // Reset y for potential re-entry (not needed but clean)
+              tl.set(slideEl, { y: 0 }, slideEnd);
+
+              // Reset label/detail/suffix for next cycle
+              if (labelEl) tl.set(labelEl, { autoAlpha: 0, y: 20 }, slideEnd);
+              if (detailEl) tl.set(detailEl, { autoAlpha: 0, y: 20 }, slideEnd);
+              if (suffixEl) tl.set(suffixEl, { autoAlpha: 0, scale: 0.5 }, slideEnd);
+            }
           });
-
-          /* Phase 3 (40%-75%): Number counter glow */
-          const numberEls = grid.querySelectorAll(".stat-number");
-          if (numberEls.length) {
-            // Glow intensifies
-            tl.to(
-              numberEls,
-              {
-                textShadow: `0 0 20px ${GLOW.primary}`,
-                duration: 0.2,
-                stagger: STAGGER.small,
-                ease: EASE.enterSoft,
-              },
-              0.4
-            );
-            // Glow settles
-            tl.to(
-              numberEls,
-              {
-                textShadow: "0 0 8px rgba(0,240,255,0.2)",
-                duration: 0.15,
-                stagger: STAGGER.small,
-                ease: EASE.enterSoft,
-              },
-              0.6
-            );
-          }
-
-          /* Phase 4 (75%-100%): Settle */
-          // Cards drift up (parallax feel)
-          tl.to(
-            cards,
-            {
-              y: -20,
-              duration: 0.25,
-              stagger: STAGGER.small,
-              ease: EASE.enterSoft,
-            },
-            0.75
-          );
-
-          // Grid background fades out
-          if (gridBg) {
-            tl.to(
-              gridBg,
-              { autoAlpha: 0, duration: 0.25 },
-              0.75
-            );
-          }
         }
       }
     );
@@ -234,76 +377,109 @@ export default function Stats() {
     <section
       ref={sectionRef}
       id="estadisticas"
-      className="section-pinned perspective-section relative"
-      style={{ zIndex: 4, backgroundColor: "var(--bg-stats)" }}
+      className="relative overflow-hidden"
+      style={{ background: "var(--bg)" }}
     >
-      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0">
         <div
-          className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)" }}
+          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(0,240,255,0.04) 0%, transparent 70%)",
+          }}
         />
-        <svg
-          ref={gridBgRef}
-          className="absolute inset-0 h-full w-full opacity-50"
-          viewBox="0 0 1200 400"
-          fill="none"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="grid-g" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#EC4899" stopOpacity="0.06" />
-            </linearGradient>
-          </defs>
-          <line x1="0" y1="80" x2="1200" y2="80" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="0" y1="160" x2="1200" y2="160" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="0" y1="240" x2="1200" y2="240" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="0" y1="320" x2="1200" y2="320" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="200" y1="0" x2="200" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="400" y1="0" x2="400" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="600" y1="0" x2="600" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="800" y1="0" x2="800" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <line x1="1000" y1="0" x2="1000" y2="400" stroke="url(#grid-g)" strokeWidth="0.5" />
-          <circle cx="600" cy="200" r="2.5" fill="#F472B6" opacity="0.15">
-            <animate attributeName="opacity" values="0.1;0.35;0.1" dur="3s" repeatCount="indefinite" />
-          </circle>
-        </svg>
       </div>
 
-      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
-        <div ref={headerRef} className="will-change-clip mb-12 text-center">
-          <span className="eyebrow mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
-            <span className="eyebrow-line">Resultados que Hablan</span>
-          </span>
-          <h2
-            ref={headingRef}
-            className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white"
-            style={{ perspective: "800px" }}
+      {/* Section header */}
+      <div
+        ref={headerRef}
+        className="absolute left-0 right-0 top-8 z-10 text-center"
+      >
+        <div className="eyebrow justify-center">
+          <span className="eyebrow-line" />
+          Resultados
+          <span className="eyebrow-line" style={{ transformOrigin: "right" }} />
+        </div>
+      </div>
+
+      {/* Stat slides */}
+      <div className="relative min-h-screen max-md:grid max-md:grid-cols-2 max-md:gap-4 max-md:px-6 max-md:py-24">
+        {SELECTED_STATS.map((stat, i) => (
+          <div
+            key={stat.label}
+            ref={setSlideRef(i)}
+            className="
+              md:absolute md:inset-0 md:flex md:flex-col md:items-center md:justify-center
+              max-md:glass-card max-md:flex max-md:flex-col max-md:items-center max-md:justify-center max-md:rounded-2xl max-md:p-6
+            "
+            style={{ willChange: "opacity, transform" }}
           >
-            Numeros que respaldan cada palabra
-          </h2>
-        </div>
-        <div
-          ref={gridRef}
-          className="perspective-cards grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-          style={{ perspective: "1000px" }}
-        >
-          {STATS.map((stat) => (
-            <div key={stat.label} className="glass-card">
-              <StatCard
-                target={stat.target}
-                suffix={stat.suffix}
-                decimal={stat.decimal}
-                label={stat.label}
-                detail={stat.detail}
-                scrub
-              />
+            {/* Number */}
+            <div className="flex items-baseline justify-center">
+              <div
+                ref={setNumberRef(i)}
+                className="
+                  stat-number-giant
+                  font-[var(--font-primary)] font-bold leading-none text-white
+                  text-[clamp(3rem,15vw,12rem)]
+                  max-md:text-[clamp(2rem,10vw,3.5rem)]
+                "
+              >
+                0
+              </div>
+              <span
+                ref={setSuffixRef(i)}
+                className="
+                  ml-2 font-[var(--font-primary)] font-bold text-[var(--cyan)]
+                  text-[clamp(1.5rem,5vw,4rem)]
+                  max-md:text-[clamp(1rem,3vw,1.5rem)]
+                "
+                style={{ opacity: 0 }}
+              >
+                {stat.suffix}
+              </span>
             </div>
-          ))}
-        </div>
+
+            {/* Label */}
+            <div
+              ref={setLabelRef(i)}
+              className="
+                stat-label mt-4 font-[var(--font-primary)] font-semibold uppercase tracking-[3px] text-[var(--cyan)]
+                text-[clamp(0.875rem,1.5vw,1.25rem)]
+                max-md:mt-2 max-md:text-xs max-md:tracking-[2px]
+              "
+            >
+              {stat.label}
+            </div>
+
+            {/* Detail */}
+            <div
+              ref={setDetailRef(i)}
+              className="
+                stat-detail mt-3 max-w-md text-center text-[var(--text-muted)]
+                text-[clamp(0.875rem,1.2vw,1.1rem)]
+                max-md:mt-1 max-md:text-xs
+              "
+            >
+              {stat.detail}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="whisper-divider" />
+      {/* Progress dots (desktop only) */}
+      <div
+        ref={dotsRef}
+        className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 gap-3 max-md:hidden"
+      >
+        {SELECTED_STATS.map((_, i) => (
+          <div
+            key={i}
+            className="h-2 w-2 rounded-full border border-[var(--cyan)]/30 transition-all duration-300"
+          />
+        ))}
+      </div>
     </section>
   );
 }

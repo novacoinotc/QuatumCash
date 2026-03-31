@@ -1,32 +1,42 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap } from "@/lib/gsap";
-import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, BLUR, SCRUB, GLOW } from "@/lib/animation";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { EASE, DUR, STAGGER } from "@/lib/animation";
 import { WHY_ITEMS } from "@/lib/constants";
-import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 
 export default function Why() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const headingRef = useScrollTextReveal<HTMLHeadingElement>();
-  const eyebrowRef = useRef<HTMLSpanElement>(null);
-  const eyebrowLineRef = useRef<HTMLSpanElement>(null);
-  const threadRef = useRef<SVGSVGElement>(null);
-  const threadLineRef = useRef<SVGLineElement>(null);
-  const reasonsContainerRef = useRef<HTMLDivElement>(null);
-  const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const markerRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const ghostRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const headingBlockRefs = useRef<(HTMLHeadingElement | null)[]>([]);
-  const bodyRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+  const lineInnerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const ghostRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const titleRefs = useRef<(HTMLHeadingElement | null)[]>([]);
+  const descRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
     const heading = headingRef.current;
-    const container = reasonsContainerRef.current;
+    const container = containerRef.current;
+    const lineInner = lineInnerRef.current;
     if (!section || !header || !container) return;
+
+    /* ── Split heading into words ── */
+    if (heading && window.innerWidth > 768) {
+      const text = heading.textContent || "";
+      heading.innerHTML = text
+        .split(" ")
+        .map(
+          (w) =>
+            `<span class="scroll-word inline-block" style="opacity:0;transform:translateY(40px)">${w}&nbsp;</span>`
+        )
+        .join("");
+    }
 
     const mm = gsap.matchMedia();
 
@@ -39,107 +49,77 @@ export default function Why() {
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-        const eyebrow = eyebrowRef.current;
-        const eyebrowLine = eyebrowLineRef.current;
-        const blocks = blockRefs.current.filter(Boolean) as HTMLDivElement[];
-        const markers = markerRefs.current.filter(Boolean) as HTMLDivElement[];
-        const ghosts = ghostRefs.current.filter(Boolean) as HTMLSpanElement[];
-        const headings = headingBlockRefs.current.filter(Boolean) as HTMLHeadingElement[];
-        const bodies = bodyRefs.current.filter(Boolean) as HTMLParagraphElement[];
+        const dots = dotRefs.current.filter(Boolean) as HTMLDivElement[];
+        const ghosts = ghostRefs.current.filter(Boolean) as HTMLDivElement[];
+        const titles = titleRefs.current.filter(Boolean) as HTMLHeadingElement[];
+        const descs = descRefs.current.filter(Boolean) as HTMLParagraphElement[];
+        const items = itemRefs.current.filter(Boolean) as HTMLDivElement[];
 
-        /* ── Reduced motion: make everything visible ── */
+        /* ── Reduced motion ── */
         if (reduceMotion) {
-          gsap.set([header, ...blocks], {
+          gsap.set([header, ...items], {
             autoAlpha: 1,
             x: 0,
             y: 0,
             scale: 1,
             filter: "blur(0px)",
           });
-          gsap.set(markers, { autoAlpha: 1, scale: 1 });
-          gsap.set(ghosts, { autoAlpha: 0.08, scale: 1, filter: "blur(0px)" });
-          gsap.set(headings, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
-          gsap.set(bodies, { autoAlpha: 1, y: 0 });
-          if (eyebrow) gsap.set(eyebrow, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
-          if (eyebrowLine) gsap.set(eyebrowLine, { scaleX: 1 });
+          gsap.set(dots, { autoAlpha: 1, scale: 1 });
+          dots.forEach((d) => d.classList.add("active"));
+          gsap.set(ghosts, { autoAlpha: 0.06, scale: 1 });
+          gsap.set(titles, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
+          gsap.set(descs, { autoAlpha: 1, y: 0 });
+          if (lineInner) gsap.set(lineInner, { scaleY: 1 });
           if (heading) {
             gsap.set(heading.querySelectorAll(".scroll-word"), {
               y: 0,
               autoAlpha: 1,
             });
           }
-          if (threadLineRef.current) {
-            gsap.set(threadLineRef.current, { strokeDashoffset: 0 });
-          }
           return;
         }
 
-        /* ── Mobile: simple per-block entrance ── */
+        /* ── Mobile: simple reveal, line on left ── */
         if (isMobile) {
-          // Header
-          const headerTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: header,
-              start: "top 85%",
-              end: "bottom 60%",
-              scrub: SCRUB.text,
-            },
+          gsap.from(header, {
+            autoAlpha: 0,
+            y: 30,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
+            scrollTrigger: { trigger: header, start: "top 90%" },
           });
 
-          if (eyebrow) {
-            headerTl.from(eyebrow, {
-              autoAlpha: 0,
-              x: -20,
-              filter: "blur(4px)",
-              duration: 0.3,
-              ease: EASE.enterSoft,
-            }, 0);
-          }
-          if (eyebrowLine) {
-            headerTl.from(eyebrowLine, {
-              scaleX: 0,
-              transformOrigin: "left center",
-              duration: 0.3,
-              ease: EASE.enter,
-            }, 0);
-          }
-
-          headerTl.from(header.querySelector("h2") || header, {
-            autoAlpha: 0,
-            y: 20,
-            duration: 0.5,
-          }, 0.2);
-
-          // Each block: simple y entrance
-          blocks.forEach((block, i) => {
-            gsap.timeline({
+          /* Line grow */
+          if (lineInner) {
+            gsap.to(lineInner, {
+              scaleY: 1,
+              ease: "none",
               scrollTrigger: {
-                trigger: block,
-                start: "top 85%",
-                end: "bottom 60%",
-                scrub: SCRUB.text,
+                trigger: container,
+                start: "top 80%",
+                end: "bottom 20%",
+                scrub: 0.8,
               },
-            }).from(block, {
+            });
+          }
+
+          items.forEach((item, i) => {
+            gsap.from(item, {
               autoAlpha: 0,
-              y: MOVE_MOBILE.y.enter,
+              y: 50,
               duration: DUR.base,
               ease: EASE.enterSoft,
+              scrollTrigger: { trigger: item, start: "top 85%" },
             });
 
-            // Markers still animate on mobile
-            if (markers[i]) {
-              gsap.timeline({
-                scrollTrigger: {
-                  trigger: block,
-                  start: "top 80%",
-                  end: "top 50%",
-                  scrub: SCRUB.text,
-                },
-              }).from(markers[i], {
+            if (dots[i]) {
+              gsap.from(dots[i], {
                 scale: 0.5,
                 autoAlpha: 0,
-                duration: 0.4,
+                duration: DUR.fast,
                 ease: EASE.elastic,
+                scrollTrigger: { trigger: item, start: "top 80%" },
+                onComplete: () => dots[i].classList.add("active"),
               });
             }
           });
@@ -147,126 +127,95 @@ export default function Why() {
           return;
         }
 
-        /* ── Desktop: per-block ScrollTriggers with progress thread ── */
+        /* ── Desktop ── */
         if (isDesktop) {
-          // ── Header animation ──
+          /* Header */
           const headerTl = gsap.timeline({
             scrollTrigger: {
               trigger: header,
               start: "top 80%",
               end: "bottom 50%",
-              scrub: SCRUB.text,
+              scrub: 0.8,
             },
           });
 
+          const eyebrow = header.querySelector(".eyebrow");
           if (eyebrow) {
-            headerTl.from(eyebrow, {
-              autoAlpha: 0,
-              x: -30,
-              filter: "blur(4px)",
-              duration: 0.08,
-              ease: EASE.enterSoft,
-            }, 0);
-          }
-          if (eyebrowLine) {
-            headerTl.from(eyebrowLine, {
-              scaleX: 0,
-              transformOrigin: "left center",
-              duration: 0.08,
-              ease: EASE.enter,
-            }, 0);
+            headerTl.from(
+              eyebrow,
+              { autoAlpha: 0, x: -30, filter: "blur(4px)", duration: 0.08, ease: EASE.enterSoft },
+              0
+            );
           }
 
-          // Word-by-word heading
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
-            if (words.length) {
-              const totalDuration = 0.3;
-              const perWord = totalDuration / words.length;
-              words.forEach((word, i) => {
-                headerTl.fromTo(
-                  word,
-                  { autoAlpha: 0, y: 60, rotateX: -40 },
-                  {
-                    autoAlpha: 1,
-                    y: 0,
-                    rotateX: 0,
-                    duration: DUR.slow / 10,
-                    ease: EASE.enter,
-                  },
-                  0.05 + i * perWord
-                );
-              });
-            }
+            const perWord = 0.3 / Math.max(words.length, 1);
+            words.forEach((word, i) => {
+              headerTl.to(
+                word,
+                {
+                  y: 0,
+                  autoAlpha: 1,
+                  duration: DUR.slow / 10,
+                  ease: EASE.enter,
+                },
+                0.05 + i * perWord
+              );
+            });
           }
 
-          // ── Progress thread ──
-          const threadLine = threadLineRef.current;
-          if (threadLine && container) {
-            const totalHeight = container.scrollHeight;
-            gsap.set(threadLine, {
-              strokeDasharray: totalHeight,
-              strokeDashoffset: totalHeight,
-            });
-
-            gsap.to(threadLine, {
-              strokeDashoffset: 0,
+          /* Master line progress */
+          if (lineInner) {
+            gsap.to(lineInner, {
+              scaleY: 1,
               ease: "none",
               scrollTrigger: {
                 trigger: container,
                 start: "top 70%",
                 end: "bottom 30%",
-                scrub: SCRUB.text,
+                scrub: 0.8,
               },
             });
           }
 
-          // ── Per-block animations ──
-          blocks.forEach((block, i) => {
-            const blockTl = gsap.timeline({
+          /* Per-item animations */
+          items.forEach((item, i) => {
+            const isLeft = i % 2 === 0;
+
+            const itemTl = gsap.timeline({
               scrollTrigger: {
-                trigger: block,
+                trigger: item,
                 start: "top 70%",
                 end: "bottom 30%",
-                scrub: SCRUB.text,
+                scrub: 0.8,
               },
             });
 
-            // 1. Marker: scale up and fill with glow
-            if (markers[i]) {
-              blockTl.fromTo(
-                markers[i],
-                {
-                  scale: 0.5,
-                  autoAlpha: 0.3,
-                  borderColor: "rgba(0,240,255,0.2)",
-                  boxShadow: `0 0 0px ${GLOW.primary}`,
-                },
+            /* 1. Dot */
+            if (dots[i]) {
+              itemTl.fromTo(
+                dots[i],
+                { scale: 0.5, autoAlpha: 0 },
                 {
                   scale: 1,
                   autoAlpha: 1,
-                  borderColor: GLOW.primary,
-                  boxShadow: `0 0 20px ${GLOW.primary}40, 0 0 6px ${GLOW.primary}20`,
                   duration: DUR.base,
                   ease: EASE.enter,
+                  onComplete: () => dots[i].classList.add("active"),
                 },
                 0
               );
             }
 
-            // 2. Ghost number
+            /* 2. Ghost number */
             if (ghosts[i]) {
-              blockTl.fromTo(
+              itemTl.fromTo(
                 ghosts[i],
+                { autoAlpha: 0, scale: 1.5 },
                 {
-                  autoAlpha: 0,
-                  scale: 2,
-                  filter: BLUR.enter,
-                },
-                {
-                  autoAlpha: 0.08,
+                  autoAlpha: 0.06,
                   scale: 1,
-                  filter: "blur(0px)",
                   duration: DUR.slow,
                   ease: EASE.enter,
                 },
@@ -274,16 +223,12 @@ export default function Why() {
               );
             }
 
-            // 3. Heading from alternating side
-            if (headings[i]) {
-              const xFrom = i % 2 === 0 ? -80 : 80;
-              blockTl.fromTo(
-                headings[i],
-                {
-                  autoAlpha: 0,
-                  x: xFrom,
-                  filter: "blur(8px)",
-                },
+            /* 3. Title from alternating x */
+            if (titles[i]) {
+              const xFrom = isLeft ? -80 : 80;
+              itemTl.fromTo(
+                titles[i],
+                { autoAlpha: 0, x: xFrom, filter: "blur(6px)" },
                 {
                   autoAlpha: 1,
                   x: 0,
@@ -295,14 +240,11 @@ export default function Why() {
               );
             }
 
-            // 4. Body text
-            if (bodies[i]) {
-              blockTl.fromTo(
-                bodies[i],
-                {
-                  autoAlpha: 0,
-                  y: 40,
-                },
+            /* 4. Description */
+            if (descs[i]) {
+              itemTl.fromTo(
+                descs[i],
+                { autoAlpha: 0, y: 30 },
                 {
                   autoAlpha: 1,
                   y: 0,
@@ -327,17 +269,11 @@ export default function Why() {
       className="relative py-[var(--section-padding)]"
       style={{ zIndex: 2, backgroundColor: "var(--bg-why)" }}
     >
-      {/* Section header */}
+      {/* Section Header */}
       <div className="mx-auto max-w-[var(--container-max)] px-6 mb-16">
         <div ref={headerRef}>
-          <span
-            className="eyebrow mb-4 inline-flex items-center gap-3 font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]"
-            ref={eyebrowRef}
-          >
-            <span
-              className="eyebrow-line inline-block h-px w-8 bg-[var(--purple-light)]"
-              ref={eyebrowLineRef}
-            />
+          <span className="eyebrow mb-4 inline-flex items-center gap-3 font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="eyebrow-line inline-block h-px w-8 bg-[var(--purple-light)]" />
             Por que Elegirme
           </span>
           <h2
@@ -350,87 +286,153 @@ export default function Why() {
         </div>
       </div>
 
-      {/* Reason blocks with progress thread */}
-      <div className="relative mx-auto max-w-[var(--container-max)] px-6" ref={reasonsContainerRef}>
-        {/* Progress thread SVG — desktop only */}
-        <svg
-          ref={threadRef}
-          className="progress-thread absolute top-0 h-full w-[2px] max-md:hidden"
-          style={{ left: "24px" }}
-          aria-hidden="true"
-        >
-          <line
-            ref={threadLineRef}
-            x1="1"
-            y1="0"
-            x2="1"
-            y2="100%"
-            className="progress-thread-line"
-            stroke={GLOW.primary}
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
+      {/* Timeline Container */}
+      <div
+        ref={containerRef}
+        className="relative mx-auto max-w-[var(--container-max)] px-6"
+      >
+        {/* Vertical timeline line */}
+        <div className="timeline-line" ref={lineRef}>
+          <div ref={lineInnerRef} className="timeline-line-inner" />
+        </div>
 
-        {/* Reason blocks */}
-        <div className="flex flex-col gap-0">
-          {WHY_ITEMS.map((item, i) => (
+        {/* Timeline items */}
+        {WHY_ITEMS.map((item, i) => {
+          const isLeft = i % 2 === 0;
+          return (
             <div
               key={item.number}
               ref={(el) => {
-                blockRefs.current[i] = el;
+                itemRefs.current[i] = el;
               }}
-              className="reason-block relative grid gap-8 py-12 lg:grid-cols-[60px_1fr] lg:gap-16 border-b border-[var(--border-default)] last:border-b-0"
+              className="relative grid grid-cols-[1fr_auto_1fr] gap-8 py-16 md:py-20 max-md:grid-cols-[40px_1fr] max-md:gap-4 max-md:py-10"
             >
-              {/* Number marker (left) */}
-              <div className="relative flex justify-center">
+              {/* Left column */}
+              <div
+                className={`flex flex-col justify-center max-md:hidden${
+                  !isLeft ? " md:order-3" : ""
+                }`}
+              >
+                {isLeft && (
+                  <div className="md:text-right">
+                    <div
+                      ref={(el) => {
+                        ghostRefs.current[i] = el;
+                      }}
+                      className="ghost-num absolute -top-4 right-0 max-md:hidden"
+                      aria-hidden="true"
+                    >
+                      {item.number}
+                    </div>
+                    <h4
+                      ref={(el) => {
+                        titleRefs.current[i] = el;
+                      }}
+                      className="mb-2 font-[var(--font-heading)] text-xl font-semibold text-[var(--text-1,#fff)]"
+                    >
+                      {item.title}
+                    </h4>
+                    <p
+                      ref={(el) => {
+                        descRefs.current[i] = el;
+                      }}
+                      className="ml-auto max-w-sm text-[var(--text-2,var(--gray-400))]"
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Center dot */}
+              <div className="relative flex items-start justify-center pt-2 max-md:flex max-md:items-start max-md:justify-center">
                 <div
                   ref={(el) => {
-                    markerRefs.current[i] = el;
+                    dotRefs.current[i] = el;
                   }}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-glow)] text-[var(--glow-primary)] font-[var(--font-primary)] font-bold text-sm"
+                  className="timeline-dot flex items-center justify-center text-[10px] font-bold text-[var(--cyan)]"
+                  style={{
+                    position: "relative",
+                    left: "auto",
+                    transform: "none",
+                    width: "32px",
+                    height: "32px",
+                    fontSize: "11px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   {item.number}
                 </div>
               </div>
 
-              {/* Content (right) */}
-              <div className="relative">
-                {/* Ghost number — desktop only */}
-                <span
-                  ref={(el) => {
-                    ghostRefs.current[i] = el;
-                  }}
-                  className="ghost-number pointer-events-none absolute select-none font-[var(--font-primary)] text-[8rem] font-black leading-none text-white max-md:hidden"
-                  style={{
-                    top: "-10px",
-                    [i % 2 === 0 ? "right" : "left"]: "-20px",
-                    opacity: 0,
-                  }}
-                  aria-hidden="true"
-                >
-                  {item.number}
-                </span>
+              {/* Right column */}
+              <div
+                className={`flex flex-col justify-center max-md:hidden${
+                  isLeft ? " md:order-1" : ""
+                }`}
+              >
+                {!isLeft && (
+                  <div>
+                    <div
+                      ref={(el) => {
+                        /* Only assign ghost ref once per item */
+                        if (!isLeft) ghostRefs.current[i] = el;
+                      }}
+                      className="ghost-num absolute -top-4 left-0 max-md:hidden"
+                      aria-hidden="true"
+                    >
+                      {item.number}
+                    </div>
+                    <h4
+                      ref={(el) => {
+                        if (!isLeft) titleRefs.current[i] = el;
+                      }}
+                      className="mb-2 font-[var(--font-heading)] text-xl font-semibold text-[var(--text-1,#fff)]"
+                    >
+                      {item.title}
+                    </h4>
+                    <p
+                      ref={(el) => {
+                        if (!isLeft) descRefs.current[i] = el;
+                      }}
+                      className="max-w-sm text-[var(--text-2,var(--gray-400))]"
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile-only content (always right of dot) */}
+              <div className="hidden max-md:block">
                 <h4
                   ref={(el) => {
-                    headingBlockRefs.current[i] = el;
+                    /* On mobile, these are the visible title/desc.
+                       Only assign refs if not already assigned by desktop columns. */
+                    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+                      titleRefs.current[i] = el;
+                    }
                   }}
-                  className="mb-2 font-[var(--font-primary)] text-xl font-semibold text-white"
+                  className="mb-1 font-[var(--font-heading)] text-lg font-semibold text-[var(--text-1,#fff)]"
                 >
                   {item.title}
                 </h4>
                 <p
                   ref={(el) => {
-                    bodyRefs.current[i] = el;
+                    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+                      descRefs.current[i] = el;
+                    }
                   }}
-                  className="text-[var(--text-secondary)] leading-relaxed max-w-lg"
+                  className="text-sm text-[var(--text-2,var(--gray-400))] leading-relaxed"
                 >
                   {item.desc}
                 </p>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       <div className="whisper-divider" />

@@ -19,6 +19,7 @@ export default function Footer() {
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
+
     if (prefersReduced) {
       gsap.set(footer.querySelectorAll(".footer-col, .footer-bottom"), {
         autoAlpha: 1,
@@ -27,7 +28,6 @@ export default function Footer() {
       return;
     }
 
-    // Staggered reveal of footer columns
     const columns = footer.querySelectorAll(".footer-col");
     const bottomBar = footer.querySelector(".footer-bottom");
 
@@ -72,12 +72,12 @@ export default function Footer() {
       ref={footerRef}
       className="relative border-t border-[var(--dark-border)] bg-[var(--surface-dark)] py-16"
     >
-      {/* Top line with gradient */}
-      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--glow-primary)]/30 to-transparent" />
+      {/* Top gradient line */}
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
 
       <div className="mx-auto max-w-[var(--container-max)] px-6">
         <div className="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
+          {/* Brand column */}
           <div className="footer-col">
             <a href="#" className="mb-4 flex items-center gap-2">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-violet-500 to-violet-600 font-bold text-white">
@@ -93,7 +93,7 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation column */}
           <div className="footer-col">
             <h4 className="mb-4 font-[var(--font-primary)] text-sm font-semibold text-white">
               Navegacion
@@ -103,7 +103,7 @@ export default function Footer() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--cyan)]"
                 >
                   {link.label}
                 </a>
@@ -111,7 +111,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Services */}
+          {/* Services column */}
           <div className="footer-col">
             <h4 className="mb-4 font-[var(--font-primary)] text-sm font-semibold text-white">
               Servicios
@@ -121,7 +121,7 @@ export default function Footer() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--cyan)]"
                 >
                   {link.label}
                 </a>
@@ -129,7 +129,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Ecosystem */}
+          {/* Ecosystem column */}
           <div className="footer-col">
             <h4 className="mb-4 font-[var(--font-primary)] text-sm font-semibold text-white">
               Ecosistema
@@ -141,7 +141,7 @@ export default function Footer() {
                   href={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener" : undefined}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--cyan)]"
                 >
                   {link.label}
                 </a>
@@ -150,7 +150,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom */}
+        {/* Bottom bar */}
         <div className="footer-bottom flex flex-col items-center justify-between gap-4 border-t border-[var(--dark-border)] pt-8 sm:flex-row">
           <p className="text-xs text-[var(--gray-600)]">
             &copy; 2025 QuantumCash. Todos los derechos reservados.
