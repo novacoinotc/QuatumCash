@@ -22,17 +22,17 @@ export default function StatCard({
   const counterRef = useCounterAnimation({ target, suffix, decimal, scrub });
 
   return (
-    <div className="card-hover group rounded-2xl border border-[var(--dark-border)] bg-[var(--dark-card)]/60 p-8 text-center backdrop-blur-sm">
+    <div className="glass-card group rounded-2xl p-8 text-center">
       <div
         ref={counterRef}
-        className="mb-2 font-[var(--font-primary)] text-4xl font-bold text-white transition-colors duration-300 group-hover:text-[var(--purple-light)]"
+        className="stat-number mb-2 font-[var(--font-primary)] text-4xl font-bold text-white transition-colors duration-300 group-hover:text-[var(--glow-primary)]"
       >
         0
       </div>
-      <div className="mb-1 text-sm font-semibold text-[var(--purple-light)]">
+      <div className="mb-1 text-sm font-semibold text-[var(--glow-primary)]">
         {label}
       </div>
-      <div className="text-xs text-[var(--gray-500)]">{detail}</div>
+      <div className="text-xs text-[var(--text-muted)]">{detail}</div>
     </div>
   );
 }

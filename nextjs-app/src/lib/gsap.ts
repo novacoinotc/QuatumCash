@@ -6,9 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 
-  // Global defaults for smooth, premium feel
   gsap.defaults({
-    ease: "power3.out",
+    ease: "expo.out",
     duration: 0.8,
   });
 }

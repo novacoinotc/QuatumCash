@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
+import { EASE, DUR, STAGGER, MOVE_MOBILE, BLUR, SCRUB } from "@/lib/animation";
 import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import PhoneMockup from "@/components/visuals/PhoneMockup";
 
@@ -10,6 +11,8 @@ export default function About() {
   const contentRef = useRef<HTMLDivElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
   const headingRef = useScrollTextReveal<HTMLHeadingElement>();
+  const eyebrowRef = useRef<HTMLSpanElement>(null);
+  const eyebrowLineRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -30,19 +33,22 @@ export default function About() {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
         const features = content.querySelectorAll(".about-feature");
-        const label = content.querySelector(".about-label");
+        const eyebrow = eyebrowRef.current;
+        const eyebrowLine = eyebrowLineRef.current;
         const paragraphs = content.querySelectorAll(".about-paragraph");
 
         // Reduced motion: make everything visible, no animation
         if (reduceMotion) {
           gsap.set([content, visual], { autoAlpha: 1, x: 0, y: 0 });
-          gsap.set(features, { autoAlpha: 1, y: 0 });
-          if (label) gsap.set(label, { autoAlpha: 1, x: 0 });
+          gsap.set(features, { autoAlpha: 1, y: 0, x: 0 });
+          if (eyebrow) gsap.set(eyebrow, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
+          if (eyebrowLine) gsap.set(eyebrowLine, { scaleX: 1 });
           gsap.set(paragraphs, { autoAlpha: 1, y: 0, filter: "blur(0px)" });
           if (heading) {
             gsap.set(heading.querySelectorAll(".scroll-word"), {
               y: 0,
               autoAlpha: 1,
+              rotateX: 0,
             });
           }
           return;
@@ -54,16 +60,29 @@ export default function About() {
               trigger: section,
               start: "top 80%",
               end: "center center",
-              scrub: 1,
+              scrub: SCRUB.text,
             },
           });
 
-          tl.from(content, { autoAlpha: 0, y: 30, duration: 1 });
-          tl.from(visual, { autoAlpha: 0, y: 30, duration: 1 }, "-=0.6");
+          tl.from(content, {
+            autoAlpha: 0,
+            y: MOVE_MOBILE.y.enter,
+            duration: 1,
+          });
+          tl.from(
+            visual,
+            { autoAlpha: 0, y: 40, duration: 1 },
+            "-=0.6"
+          );
           if (features.length) {
             tl.from(
               features,
-              { autoAlpha: 0, y: 20, stagger: 0.12, duration: 0.5 },
+              {
+                autoAlpha: 0,
+                y: 20,
+                stagger: 0.1,
+                duration: 0.5,
+              },
               "-=0.4"
             );
           }
@@ -79,32 +98,58 @@ export default function About() {
               end: "+=150vh",
               pin: true,
               anticipatePin: 1,
-              scrub: 1,
+              scrub: SCRUB.cinematic,
             },
           });
 
-          // 0-0.08: Label slide in from left
-          if (label) {
+          // Beat 1 (0-0.08): Eyebrow tag
+          if (eyebrow) {
             tl.from(
-              label,
-              { autoAlpha: 0, x: -30, duration: 0.08 },
+              eyebrow,
+              {
+                autoAlpha: 0,
+                x: -30,
+                filter: "blur(4px)",
+                duration: 0.08,
+                ease: EASE.enterSoft,
+              },
+              0
+            );
+          }
+          if (eyebrowLine) {
+            tl.from(
+              eyebrowLine,
+              {
+                scaleX: 0,
+                transformOrigin: "left center",
+                duration: 0.08,
+                ease: EASE.enter,
+              },
               0
             );
           }
 
-          // 0.05-0.35: Word-by-word heading reveal
+          // Beat 2 (0.05-0.35): Word-by-word heading reveal
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
             if (words.length) {
+              const totalDuration = 0.3;
+              const perWord = totalDuration / words.length;
               words.forEach((word, i) => {
-                const pos = 0.05 + i * (0.3 / words.length);
-                tl.to(
+                const pos = 0.05 + i * perWord;
+                tl.fromTo(
                   word,
                   {
-                    y: 0,
+                    autoAlpha: 0,
+                    y: 60,
+                    rotateX: -40,
+                  },
+                  {
                     autoAlpha: 1,
-                    duration: 0.04,
-                    ease: "power2.out",
+                    y: 0,
+                    rotateX: 0,
+                    duration: DUR.slow / 10,
+                    ease: EASE.enter,
                   },
                   pos
                 );
@@ -112,22 +157,23 @@ export default function About() {
             }
           }
 
-          // 0.3-0.5: Paragraphs with blur
+          // Beat 3 (0.3-0.5): Paragraphs with blur
           if (paragraphs.length) {
             tl.from(
               paragraphs,
               {
                 autoAlpha: 0,
-                y: 30,
-                filter: "blur(3px)",
-                stagger: 0.06,
+                y: 40,
+                filter: BLUR.subtle,
+                stagger: STAGGER.medium,
                 duration: 0.15,
+                ease: EASE.enterSoft,
               },
               0.3
             );
           }
 
-          // 0.35-0.65: Phone mockup 3D entrance
+          // Beat 4 (0.35-0.65): Phone mockup 3D entrance
           tl.from(
             visual,
             {
@@ -136,12 +182,23 @@ export default function About() {
               rotateY: -20,
               x: 80,
               duration: 0.3,
-              ease: "power3.out",
+              ease: EASE.enter,
             },
             0.35
           );
 
-          // 0.55-0.85: Feature cards stagger
+          // Once phone is visible, add continuous float
+          tl.add(() => {
+            gsap.to(visual, {
+              y: "random(-3,3)",
+              duration: "random(3,5)",
+              repeat: -1,
+              yoyo: true,
+              ease: "sine.inOut",
+            });
+          }, 0.65);
+
+          // Beat 5 (0.55-0.85): Feature cards stagger
           if (features.length) {
             tl.from(
               features,
@@ -151,7 +208,7 @@ export default function About() {
                 rotateY: 8,
                 stagger: 0.07,
                 duration: 0.12,
-                ease: "back.out(1.4)",
+                ease: EASE.spring,
               },
               0.55
             );
@@ -200,10 +257,18 @@ export default function About() {
       <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div ref={contentRef} className="will-change-clip">
-            <span className="about-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="eyebrow mb-4 inline-flex items-center gap-3 font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]" ref={eyebrowRef}>
               Quien Soy
+              <span
+                className="eyebrow-line inline-block h-px w-8 bg-[var(--purple-light)]"
+                ref={eyebrowLineRef}
+              />
             </span>
-            <h2 ref={headingRef} className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+            <h2
+              ref={headingRef}
+              className="mb-5 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white"
+              style={{ perspective: "800px" }}
+            >
               Detras de cada operacion, hay alguien que cuida tu dinero
             </h2>
             <p className="about-paragraph mb-4 text-[var(--gray-400)]">
@@ -224,7 +289,7 @@ export default function About() {
             </p>
 
             <div className="flex flex-col gap-4" style={{ perspective: "800px" }}>
-              <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
+              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
                 </div>
@@ -233,7 +298,7 @@ export default function About() {
                   <span className="block text-xs text-[var(--gray-500)]">7 min promedio de liberacion</span>
                 </div>
               </div>
-              <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
+              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 </div>
@@ -242,7 +307,7 @@ export default function About() {
                   <span className="block text-xs text-[var(--gray-500)]">Deposito de garantia en USDT</span>
                 </div>
               </div>
-              <div className="about-feature flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
+              <div className="about-feature glass-card flex items-start gap-4 rounded-xl border border-[var(--dark-border)]/50 bg-[var(--dark-card)]/30 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--purple)]/10 text-[var(--purple-light)]">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
                 </div>
@@ -259,6 +324,8 @@ export default function About() {
           </div>
         </div>
       </div>
+
+      <div className="whisper-divider" />
     </section>
   );
 }

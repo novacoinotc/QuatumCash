@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
+import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, SCRUB, GLOW } from "@/lib/animation";
 import { SERVICES } from "@/lib/constants";
 import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import ServiceCard from "@/components/ui/ServiceCard";
@@ -12,6 +13,7 @@ export default function Services() {
   const headerRef = useRef<HTMLDivElement>(null);
   const flowRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
   const headingRef = useScrollTextReveal<HTMLHeadingElement>();
 
   useEffect(() => {
@@ -19,6 +21,7 @@ export default function Services() {
     const header = headerRef.current;
     const flow = flowRef.current;
     const grid = gridRef.current;
+    const line = lineRef.current;
     const heading = headingRef.current;
     if (!section || !header || !grid) return;
 
@@ -33,9 +36,11 @@ export default function Services() {
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
+        const cards = Array.from(grid.children) as HTMLElement[];
+
         /* ── Reduced motion: make everything visible immediately ── */
         if (reduceMotion) {
-          gsap.set([header, ...Array.from(grid.children)], {
+          gsap.set([header, ...cards], {
             autoAlpha: 1,
             y: 0,
             x: 0,
@@ -45,6 +50,7 @@ export default function Services() {
             rotation: 0,
             filter: "blur(0px)",
           });
+          if (line) gsap.set(line, { scaleX: 1 });
           if (flow) {
             const flowEls = flow.querySelectorAll(
               ".flow-card-left, .flow-card-right, .flow-center"
@@ -57,118 +63,119 @@ export default function Services() {
               autoAlpha: 1,
             });
           }
+          // Make icon wrappers visible
+          const icons = grid.querySelectorAll(".service-icon-wrap");
+          gsap.set(icons, { autoAlpha: 1, scale: 1 });
           return;
         }
 
-        /* ── Mobile: separate ScrollTriggers, no pin ── */
+        /* ── Mobile: separate ScrollTriggers, no 3D ── */
         if (isMobile) {
           // Header
-          const headerTl = gsap.timeline({
+          gsap.from(header, {
+            autoAlpha: 0,
+            y: MOVE_MOBILE.y.enter / 2,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
             scrollTrigger: {
               trigger: header,
               start: "top 90%",
-              end: "bottom 70%",
-              scrub: 1,
             },
           });
-          headerTl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
 
           // ExchangeFlow
           if (flow) {
-            const flowTl = gsap.timeline({
+            gsap.from(flow, {
+              autoAlpha: 0,
+              y: MOVE_MOBILE.y.enter,
+              duration: DUR.base,
+              ease: EASE.enterSoft,
               scrollTrigger: {
                 trigger: flow,
                 start: "top 85%",
-                end: "bottom 55%",
-                scrub: 1,
               },
             });
-            const mxnCard = flow.querySelector(".flow-card-left");
-            const cryptoCard = flow.querySelector(".flow-card-right");
-            const hexCenter = flow.querySelector(".flow-center");
-            if (mxnCard && cryptoCard && hexCenter) {
-              flowTl.from(mxnCard, { autoAlpha: 0, y: 20, duration: 1 });
-              flowTl.from(
-                hexCenter,
-                { autoAlpha: 0, scale: 0.8, rotation: -30, duration: 1 },
-                "-=0.7"
-              );
-              flowTl.from(
-                cryptoCard,
-                { autoAlpha: 0, y: 20, duration: 1 },
-                "-=0.7"
-              );
-            }
           }
 
           // Service cards grid
-          const cardTl = gsap.timeline({
+          gsap.from(cards, {
+            autoAlpha: 0,
+            y: MOVE_MOBILE.y.enter,
+            stagger: STAGGER.small,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
             scrollTrigger: {
               trigger: grid,
-              start: "top 88%",
-              end: "center center",
-              scrub: 1,
+              start: "top 85%",
             },
-          });
-          cardTl.from(grid.children, {
-            autoAlpha: 0,
-            y: 20,
-            stagger: 0.04,
-            duration: 0.8,
           });
 
           return;
         }
 
-        /* ── Desktop: pinned fullscreen scrub ── */
+        /* ── Desktop: scroll-triggered, NOT pinned ── */
         if (isDesktop) {
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section,
-              start: "top top",
-              end: "+=160vh",
-              pin: true,
-              anticipatePin: 1,
-              scrub: 1,
+              start: "top 60%",
+              end: "bottom 20%",
+              scrub: SCRUB.cards,
             },
           });
 
-          // 0-0.05: Label
-          const label = header.querySelector(".services-label");
+          /* Beat 1: Section header */
+          // Eyebrow
+          const label = header.querySelector(".eyebrow");
           if (label) {
-            tl.from(label, { autoAlpha: 0, y: -20, duration: 0.05 }, 0);
+            tl.from(
+              label,
+              { autoAlpha: 0, y: -20, duration: 0.08, ease: EASE.enter },
+              0
+            );
           }
 
-          // 0.03-0.2: Word-by-word heading
+          // Heading word-by-word
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
             if (words.length) {
               words.forEach((word, i) => {
+                const pos = 0.02 + i * (0.12 / words.length);
                 tl.to(
                   word,
                   {
                     y: 0,
                     autoAlpha: 1,
                     duration: 0.03,
-                    ease: "power2.out",
+                    ease: EASE.enter,
                   },
-                  0.03 + i * (0.17 / words.length)
+                  pos
                 );
               });
             }
           }
 
-          // 0.18-0.26: Subtitle
+          // Subtitle
           const subtitle = header.querySelector(".services-subtitle");
           if (subtitle) {
             tl.from(
               subtitle,
-              { autoAlpha: 0, y: 20, filter: "blur(3px)", duration: 0.08 },
-              0.18
+              { autoAlpha: 0, y: 20, filter: "blur(3px)", duration: 0.08, ease: EASE.enterSoft },
+              0.12
             );
           }
 
-          // 0.26-0.5: ExchangeFlow dramatic entrance
+          // Decorative line: scaleX 0 -> 1
+          if (line) {
+            tl.fromTo(
+              line,
+              { scaleX: 0 },
+              { scaleX: 1, duration: DUR.slow / 4, ease: EASE.enter, transformOrigin: "left center" },
+              0.12
+            );
+          }
+
+          /* Beat 2: ExchangeFlow */
           if (flow) {
             const mxnCard = flow.querySelector(".flow-card-left");
             const cryptoCard = flow.querySelector(".flow-card-right");
@@ -178,12 +185,13 @@ export default function Services() {
                 mxnCard,
                 {
                   autoAlpha: 0,
-                  x: -100,
+                  x: -MOVE.x.enter,
                   rotateY: 20,
                   scale: 0.8,
                   duration: 0.12,
+                  ease: EASE.enter,
                 },
-                0.26
+                0.2
               );
               tl.from(
                 hexCenter,
@@ -192,40 +200,113 @@ export default function Services() {
                   scale: 0,
                   rotation: -120,
                   duration: 0.12,
-                  ease: "elastic.out(1, 0.5)",
+                  ease: EASE.elastic,
                 },
-                0.33
+                0.27
               );
               tl.from(
                 cryptoCard,
                 {
                   autoAlpha: 0,
-                  x: 100,
+                  x: MOVE.x.enter,
                   rotateY: -20,
                   scale: 0.8,
                   duration: 0.12,
+                  ease: EASE.enter,
                 },
-                0.33
+                0.27
               );
             }
           }
 
-          // 0.5-0.92: Service cards stagger
-          const cards = Array.from(grid.children);
+          /* Beat 3: Service cards cascade */
+          tl.from(
+            cards,
+            {
+              autoAlpha: 0,
+              y: MOVE.y.enter,
+              rotateY: -8,
+              stagger: { amount: 0.5, from: "start" },
+              duration: DUR.base / 4,
+              ease: EASE.enterSoft,
+            },
+            0.4
+          );
+
+          // After each card lands, icon pops
+          const icons = grid.querySelectorAll(".service-icon-wrap");
+          if (icons.length) {
+            cards.forEach((_, i) => {
+              const cardLandTime = 0.4 + (0.5 / cards.length) * i + DUR.base / 4;
+              if (icons[i]) {
+                tl.from(
+                  icons[i],
+                  {
+                    scale: 0.5,
+                    autoAlpha: 0,
+                    duration: DUR.fast / 4,
+                    ease: EASE.spring,
+                  },
+                  cardLandTime + 0.15 / 4 // 0.15 delay scaled
+                );
+              }
+            });
+          }
+
+          /* Beat 4: Border illumination sweep */
+          const allCardsLandTime = 0.4 + 0.5 + DUR.base / 4 + 0.05;
           cards.forEach((card, i) => {
-            tl.from(
+            const sweepStart = allCardsLandTime + i * 0.1 / 4;
+            tl.to(
               card,
               {
-                autoAlpha: 0,
-                y: 60,
-                rotateX: 15,
-                scale: 0.9,
-                duration: 0.1,
-                ease: "back.out(1.2)",
+                borderColor: GLOW.primary,
+                duration: DUR.fast / 4,
+                ease: EASE.enter,
               },
-              0.5 + i * 0.05
+              sweepStart
+            );
+            tl.to(
+              card,
+              {
+                borderColor: "rgba(0,240,255,0.15)",
+                duration: DUR.fast / 4,
+                ease: EASE.enterSoft,
+              },
+              sweepStart + DUR.fast / 4
             );
           });
+
+          /* Magnetic tilt on service cards (desktop only) */
+          const magneticCards = grid.querySelectorAll<HTMLElement>(".magnetic-card");
+          const handlers: Array<{ el: HTMLElement; move: (e: MouseEvent) => void; leave: () => void }> = [];
+
+          magneticCards.forEach((card) => {
+            const handleMove = (e: MouseEvent) => {
+              const rect = card.getBoundingClientRect();
+              const x = (e.clientX - rect.left) / rect.width;
+              const y = (e.clientY - rect.top) / rect.height;
+              const rotateY = (x - 0.5) * 16; // max +/-8deg
+              const rotateX = (0.5 - y) * 16;
+              card.style.setProperty("--mouse-x", `${x * 100}%`);
+              card.style.setProperty("--mouse-y", `${y * 100}%`);
+              gsap.to(card, { rotateY, rotateX, duration: DUR.fast, ease: EASE.hoverIn, overwrite: true });
+            };
+            const handleLeave = () => {
+              gsap.to(card, { rotateX: 0, rotateY: 0, duration: DUR.fast, ease: EASE.hoverOut, overwrite: true });
+            };
+            card.addEventListener("mousemove", handleMove);
+            card.addEventListener("mouseleave", handleLeave);
+            handlers.push({ el: card, move: handleMove, leave: handleLeave });
+          });
+
+          // Cleanup magnetic listeners
+          return () => {
+            handlers.forEach(({ el, move, leave }) => {
+              el.removeEventListener("mousemove", move);
+              el.removeEventListener("mouseleave", leave);
+            });
+          };
         }
       }
     );
@@ -237,7 +318,7 @@ export default function Services() {
     <section
       ref={sectionRef}
       id="servicios"
-      className="section-pinned perspective-section relative"
+      className="perspective-section relative"
       style={{ zIndex: 3, backgroundColor: "var(--bg-services)" }}
     >
       <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
@@ -260,12 +341,16 @@ export default function Services() {
         </svg>
       </div>
 
-      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
+      <div className="mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div ref={headerRef} className="mb-12 text-center">
-          <span className="services-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
-            Servicios
+          <span className="eyebrow mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="eyebrow-line">Servicios</span>
           </span>
-          <h2 ref={headingRef} className="mb-4 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+          <h2
+            ref={headingRef}
+            className="mb-4 font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white"
+            style={{ perspective: "800px" }}
+          >
             Todo lo que necesitas, en un solo lugar
           </h2>
           <p className="services-subtitle mx-auto max-w-xl text-[var(--gray-400)]">
@@ -273,18 +358,39 @@ export default function Services() {
             wallets. Soluciones integrales respaldadas por la tecnologia de
             NovaCoin.
           </p>
+          <div
+            ref={lineRef}
+            className="mx-auto mt-6 h-px w-24"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${GLOW.secondary}, transparent)`,
+              transformOrigin: "left center",
+            }}
+          />
         </div>
 
         <div ref={flowRef} style={{ perspective: "1200px" }}>
           <ExchangeFlow />
         </div>
 
-        <div ref={gridRef} className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" style={{ perspective: "1000px" }}>
+        <div
+          ref={gridRef}
+          className="perspective-cards grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ perspective: "800px" }}
+        >
           {SERVICES.map((service) => (
-            <ServiceCard key={service.title} icon={service.icon} title={service.title} desc={service.desc} tags={service.tags} />
+            <div key={service.title} className="glass-card magnetic-card">
+              <ServiceCard
+                icon={service.icon}
+                title={service.title}
+                desc={service.desc}
+                tags={service.tags}
+              />
+            </div>
           ))}
         </div>
       </div>
+
+      <div className="whisper-divider" />
     </section>
   );
 }

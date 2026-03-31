@@ -2,13 +2,11 @@
 
 import { useRef, useEffect } from "react";
 
-const TRAIL_LENGTH = 25;
-const GLOW_RADIUS = 150;
+const TRAIL_LENGTH = 20;
 
 interface TrailPoint {
   x: number;
   y: number;
-  age: number;
 }
 
 export default function CursorTrail() {
@@ -19,9 +17,7 @@ export default function CursorTrail() {
     if (!canvas) return;
 
     const hasHover = window.matchMedia("(hover: hover)").matches;
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (!hasHover || prefersReduced) {
       canvas.style.display = "none";
@@ -55,72 +51,52 @@ export default function CursorTrail() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Smooth follow
-      mouseX += (targetX - mouseX) * 0.15;
-      mouseY += (targetY - mouseY) * 0.15;
+      mouseX += (targetX - mouseX) * 0.12;
+      mouseY += (targetY - mouseY) * 0.12;
 
-      // Add current position
-      trail.unshift({ x: mouseX, y: mouseY, age: 0 });
+      trail.unshift({ x: mouseX, y: mouseY });
       if (trail.length > TRAIL_LENGTH) trail.pop();
 
-      // Subtle glow at cursor position
-      const glowGradient = ctx.createRadialGradient(
-        mouseX, mouseY, 0,
-        mouseX, mouseY, GLOW_RADIUS
-      );
-      glowGradient.addColorStop(0, "rgba(124, 58, 237, 0.03)");
-      glowGradient.addColorStop(0.5, "rgba(124, 58, 237, 0.01)");
-      glowGradient.addColorStop(1, "rgba(124, 58, 237, 0)");
-      ctx.fillStyle = glowGradient;
-      ctx.fillRect(
-        mouseX - GLOW_RADIUS,
-        mouseY - GLOW_RADIUS,
-        GLOW_RADIUS * 2,
-        GLOW_RADIUS * 2
-      );
+      // Subtle glow
+      const glow = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 120);
+      glow.addColorStop(0, "rgba(0, 240, 255, 0.02)");
+      glow.addColorStop(1, "rgba(0, 240, 255, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(mouseX - 120, mouseY - 120, 240, 240);
 
-      // Draw trail with connecting lines
+      // Trail line
       if (trail.length > 1) {
         ctx.beginPath();
         ctx.moveTo(trail[0].x, trail[0].y);
         for (let i = 1; i < trail.length; i++) {
-          const t = i / trail.length;
           ctx.lineTo(trail[i].x, trail[i].y);
         }
-        const lineGradient = ctx.createLinearGradient(
+        const grad = ctx.createLinearGradient(
           trail[0].x, trail[0].y,
           trail[trail.length - 1].x, trail[trail.length - 1].y
         );
-        lineGradient.addColorStop(0, "rgba(124, 58, 237, 0.15)");
-        lineGradient.addColorStop(1, "rgba(236, 72, 153, 0)");
-        ctx.strokeStyle = lineGradient;
+        grad.addColorStop(0, "rgba(0, 240, 255, 0.12)");
+        grad.addColorStop(1, "rgba(139, 92, 246, 0)");
+        ctx.strokeStyle = grad;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
 
-      // Draw trail dots
+      // Trail dots
       for (let i = 0; i < trail.length; i++) {
-        const point = trail[i];
         const t = i / trail.length;
-        const size = (1 - t) * 3.5 + 0.3;
-        const alpha = (1 - t) * 0.4;
+        const size = (1 - t) * 3 + 0.3;
+        const alpha = (1 - t) * 0.35;
 
-        const r = Math.round(124 + (236 - 124) * t);
-        const g = Math.round(58 + (72 - 58) * t);
-        const b = Math.round(237 + (153 - 237) * t);
+        // Cyan → violet gradient
+        const r = Math.round(0 + (139 - 0) * t);
+        const g = Math.round(240 + (92 - 240) * t);
+        const b = Math.round(255 + (246 - 255) * t);
 
         ctx.beginPath();
-        ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+        ctx.arc(trail[i].x, trail[i].y, size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
         ctx.fill();
-
-        // Small glow on first few dots
-        if (i < 3) {
-          ctx.beginPath();
-          ctx.arc(point.x, point.y, size * 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${r},${g},${b},${alpha * 0.15})`;
-          ctx.fill();
-        }
       }
 
       animationId = requestAnimationFrame(animate);

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
+import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, SCRUB, GLOW } from "@/lib/animation";
 import { STATS } from "@/lib/constants";
 import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
 import StatCard from "@/components/ui/StatCard";
@@ -10,12 +11,14 @@ export default function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const gridBgRef = useRef<SVGSVGElement>(null);
   const headingRef = useScrollTextReveal<HTMLHeadingElement>();
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
     const grid = gridRef.current;
+    const gridBg = gridBgRef.current;
     const heading = headingRef.current;
     if (!section || !header || !grid) return;
 
@@ -30,8 +33,8 @@ export default function Stats() {
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-        const cards = grid.children;
-        const label = header.querySelector(".stats-label");
+        const cards = Array.from(grid.children) as HTMLElement[];
+        const label = header.querySelector(".eyebrow");
 
         // Reduced motion: make everything visible, no animation
         if (reduceMotion) {
@@ -47,109 +50,179 @@ export default function Stats() {
           return;
         }
 
+        /* ── Mobile: no pin, cards scroll-reveal individually ── */
         if (isMobile) {
-          const tl = gsap.timeline({
+          // Header
+          gsap.from(header, {
+            autoAlpha: 0,
+            y: MOVE_MOBILE.y.enter / 2,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
             scrollTrigger: {
-              trigger: section,
+              trigger: header,
               start: "top 85%",
-              end: "center center",
-              scrub: 1,
             },
           });
 
-          tl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
-          tl.from(
-            cards,
-            {
-              autoAlpha: 0,
-              y: 25,
-              scale: 0.95,
-              stagger: 0.04,
-              duration: 0.8,
+          // Cards stagger
+          gsap.from(cards, {
+            autoAlpha: 0,
+            y: MOVE_MOBILE.y.enter,
+            scale: 0.95,
+            stagger: STAGGER.small,
+            duration: DUR.base,
+            ease: EASE.enterSoft,
+            scrollTrigger: {
+              trigger: grid,
+              start: "top 85%",
             },
-            "-=0.5"
-          );
+          });
+
           return;
         }
 
-        // Desktop: pinned fullscreen
+        /* ── Desktop: pinned cinematic scrub ── */
         if (isDesktop) {
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section,
               start: "top top",
-              end: "+=130vh",
+              end: "+=100%",
               pin: true,
               anticipatePin: 1,
-              scrub: 1,
+              scrub: SCRUB.cinematic,
             },
           });
 
-          // 0-0.08: Label
-          if (label) {
-            tl.from(
-              label,
-              { autoAlpha: 0, y: -20, duration: 0.08 },
+          /* Phase 1 (0%-20%): Section entrance */
+          // Grid background fades in
+          if (gridBg) {
+            tl.fromTo(
+              gridBg,
+              { autoAlpha: 0 },
+              { autoAlpha: 0.5, duration: 0.2 },
               0
             );
           }
 
-          // 0.05-0.35: Word-by-word heading
+          // Eyebrow label
+          if (label) {
+            tl.from(
+              label,
+              { autoAlpha: 0, y: -20, duration: 0.1, ease: EASE.enter },
+              0
+            );
+          }
+
+          // Heading word-by-word with perspective rotation
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
             if (words.length) {
               words.forEach((word, i) => {
-                const pos = 0.05 + i * (0.3 / words.length);
+                const pos = 0.02 + i * (0.18 / words.length);
                 tl.to(
                   word,
                   {
                     y: 0,
                     autoAlpha: 1,
+                    rotateX: 0,
                     duration: 0.04,
-                    ease: "power2.out",
+                    ease: EASE.enter,
                   },
                   pos
                 );
               });
+              // Set initial rotateX state via GSAP (the hook sets y + opacity)
+              gsap.set(words, { rotateX: -40 });
             }
           }
 
-          // 0.4-0.9: Cards 3D entrance
+          /* Phase 2 (20%-40%): Stat cards fly in */
           tl.from(
             cards,
             {
               autoAlpha: 0,
-              y: 80,
-              rotateX: 25,
-              scale: 0.8,
-              stagger: 0.06,
-              duration: 0.15,
-              ease: "back.out(1.2)",
+              y: 120,
+              scale: 0.85,
+              stagger: STAGGER.medium,
+              duration: DUR.slow / 4, // relative to timeline
+              ease: EASE.enter,
             },
-            0.4
+            0.2
           );
 
-          // After scrub timeline completes, add subtle floating to each card
-          // Use onComplete on the ScrollTrigger to start the float loops
-          const floatTweens: gsap.core.Tween[] = [];
-
-          tl.eventCallback("onComplete", () => {
-            Array.from(cards).forEach((card) => {
-              const tween = gsap.to(card, {
-                y: `random(-4, 4)`,
-                duration: `random(2, 3.5)`,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut",
-              });
-              floatTweens.push(tween);
-            });
+          // Border flash on landing
+          cards.forEach((card, i) => {
+            const landTime = 0.2 + i * STAGGER.medium + DUR.slow / 4;
+            tl.fromTo(
+              card,
+              { borderColor: "transparent" },
+              {
+                borderColor: GLOW.primary,
+                duration: DUR.fast / 4,
+                ease: EASE.enter,
+              },
+              landTime
+            );
+            tl.to(
+              card,
+              {
+                borderColor: "rgba(0,240,255,0.15)",
+                duration: DUR.fast / 4,
+                ease: EASE.enterSoft,
+              },
+              landTime + DUR.fast / 4
+            );
           });
 
-          // Clean up float tweens when context reverts
-          return () => {
-            floatTweens.forEach((t) => t.kill());
-          };
+          /* Phase 3 (40%-75%): Number counter glow */
+          const numberEls = grid.querySelectorAll(".stat-number");
+          if (numberEls.length) {
+            // Glow intensifies
+            tl.to(
+              numberEls,
+              {
+                textShadow: `0 0 20px ${GLOW.primary}`,
+                duration: 0.2,
+                stagger: STAGGER.small,
+                ease: EASE.enterSoft,
+              },
+              0.4
+            );
+            // Glow settles
+            tl.to(
+              numberEls,
+              {
+                textShadow: "0 0 8px rgba(0,240,255,0.2)",
+                duration: 0.15,
+                stagger: STAGGER.small,
+                ease: EASE.enterSoft,
+              },
+              0.6
+            );
+          }
+
+          /* Phase 4 (75%-100%): Settle */
+          // Cards drift up (parallax feel)
+          tl.to(
+            cards,
+            {
+              y: -20,
+              duration: 0.25,
+              stagger: STAGGER.small,
+              ease: EASE.enterSoft,
+            },
+            0.75
+          );
+
+          // Grid background fades out
+          if (gridBg) {
+            tl.to(
+              gridBg,
+              { autoAlpha: 0, duration: 0.25 },
+              0.75
+            );
+          }
         }
       }
     );
@@ -169,7 +242,13 @@ export default function Stats() {
           className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{ background: "radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)" }}
         />
-        <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 1200 400" fill="none" preserveAspectRatio="none">
+        <svg
+          ref={gridBgRef}
+          className="absolute inset-0 h-full w-full opacity-50"
+          viewBox="0 0 1200 400"
+          fill="none"
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="grid-g" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.06" />
@@ -193,31 +272,38 @@ export default function Stats() {
 
       <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
         <div ref={headerRef} className="will-change-clip mb-12 text-center">
-          <span className="stats-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
-            Resultados que Hablan
+          <span className="eyebrow mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
+            <span className="eyebrow-line">Resultados que Hablan</span>
           </span>
-          <h2 ref={headingRef} className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
+          <h2
+            ref={headingRef}
+            className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white"
+            style={{ perspective: "800px" }}
+          >
             Numeros que respaldan cada palabra
           </h2>
         </div>
         <div
           ref={gridRef}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="perspective-cards grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
         >
           {STATS.map((stat) => (
-            <StatCard
-              key={stat.label}
-              target={stat.target}
-              suffix={stat.suffix}
-              decimal={stat.decimal}
-              label={stat.label}
-              detail={stat.detail}
-              scrub
-            />
+            <div key={stat.label} className="glass-card">
+              <StatCard
+                target={stat.target}
+                suffix={stat.suffix}
+                decimal={stat.decimal}
+                label={stat.label}
+                detail={stat.detail}
+                scrub
+              />
+            </div>
           ))}
         </div>
       </div>
+
+      <div className="whisper-divider" />
     </section>
   );
 }

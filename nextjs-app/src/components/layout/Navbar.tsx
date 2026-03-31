@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { DUR } from "@/lib/animation";
 import { NAV_LINKS } from "@/lib/constants";
 
 export default function Navbar() {
@@ -17,7 +18,7 @@ export default function Navbar() {
     gsap.from(nav, {
       y: -100,
       autoAlpha: 0,
-      duration: 0.8,
+      duration: DUR.base,
       delay: 0.1,
       ease: "power3.out",
     });
@@ -33,12 +34,27 @@ export default function Navbar() {
       // Hide on scroll down, show on scroll up (only after 300px)
       if (currentY > 300) {
         if (currentY > lastScrollY.current + 5) {
-          gsap.to(nav, { y: -100, duration: 0.3, ease: "power2.in", overwrite: true });
+          gsap.to(nav, {
+            y: -100,
+            duration: 0.3,
+            ease: "power2.in",
+            overwrite: true,
+          });
         } else if (currentY < lastScrollY.current - 5) {
-          gsap.to(nav, { y: 0, duration: 0.3, ease: "power2.out", overwrite: true });
+          gsap.to(nav, {
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out",
+            overwrite: true,
+          });
         }
       } else {
-        gsap.to(nav, { y: 0, duration: 0.3, ease: "power2.out", overwrite: true });
+        gsap.to(nav, {
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out",
+          overwrite: true,
+        });
       }
 
       lastScrollY.current = currentY;
@@ -75,7 +91,7 @@ export default function Navbar() {
     <nav ref={navRef} className="navbar">
       <div className="mx-auto flex max-w-[var(--container-max)] items-center justify-between px-6">
         <a href="#" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--blue)] via-[var(--purple)] to-[var(--pink)] font-[var(--font-primary)] text-sm font-bold text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-violet-500 to-violet-600 font-[var(--font-primary)] text-sm font-bold text-white">
             Q
           </span>
           <span className="font-[var(--font-primary)] text-lg font-bold text-white">
@@ -97,10 +113,10 @@ export default function Navbar() {
               <a
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors hover:text-white ${
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   link.isCta
-                    ? "bg-gradient-to-r from-[var(--blue)] via-[var(--purple)] to-[var(--pink)] text-white"
-                    : "text-[var(--gray-400)]"
+                    ? "bg-gradient-to-r from-cyan-500 via-violet-600 to-violet-500 text-white"
+                    : "text-[var(--gray-400)] hover:text-[var(--glow-primary)]"
                 }`}
               >
                 {link.label}
@@ -136,16 +152,14 @@ export default function Navbar() {
 
       {/* Mobile menu overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 top-0 z-40 flex flex-col items-center justify-center gap-6 bg-[var(--dark)]/95 backdrop-blur-xl md:hidden">
+        <div className="fixed inset-0 top-0 z-40 flex flex-col items-center justify-center gap-6 bg-[var(--surface-dark)]/95 backdrop-blur-xl md:hidden">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
-              className={`text-xl font-medium transition-colors hover:text-white ${
-                link.isCta
-                  ? "gradient-text"
-                  : "text-[var(--gray-300)]"
+              className={`text-xl font-medium transition-colors hover:text-[var(--glow-primary)] ${
+                link.isCta ? "gradient-text" : "text-[var(--gray-300)]"
               }`}
             >
               {link.label}

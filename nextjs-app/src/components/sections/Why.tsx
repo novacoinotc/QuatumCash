@@ -2,22 +2,31 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "@/lib/gsap";
+import { EASE, DUR, STAGGER, MOVE, MOVE_MOBILE, BLUR, SCRUB, GLOW } from "@/lib/animation";
 import { WHY_ITEMS } from "@/lib/constants";
 import { useScrollTextReveal } from "@/hooks/useScrollTextReveal";
-import WhyItem from "@/components/ui/WhyItem";
 
 export default function Why() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
   const headingRef = useScrollTextReveal<HTMLHeadingElement>();
+  const eyebrowRef = useRef<HTMLSpanElement>(null);
+  const eyebrowLineRef = useRef<HTMLSpanElement>(null);
+  const threadRef = useRef<SVGSVGElement>(null);
+  const threadLineRef = useRef<SVGLineElement>(null);
+  const reasonsContainerRef = useRef<HTMLDivElement>(null);
+  const blockRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const markerRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const ghostRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const headingBlockRefs = useRef<(HTMLHeadingElement | null)[]>([]);
+  const bodyRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
   useEffect(() => {
     const section = sectionRef.current;
     const header = headerRef.current;
-    const list = listRef.current;
     const heading = headingRef.current;
-    if (!section || !header || !list) return;
+    const container = reasonsContainerRef.current;
+    if (!section || !header || !container) return;
 
     const mm = gsap.matchMedia();
 
@@ -30,147 +39,280 @@ export default function Why() {
       (context) => {
         const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-        /* ── Reduced motion: make everything visible immediately ── */
+        const eyebrow = eyebrowRef.current;
+        const eyebrowLine = eyebrowLineRef.current;
+        const blocks = blockRefs.current.filter(Boolean) as HTMLDivElement[];
+        const markers = markerRefs.current.filter(Boolean) as HTMLDivElement[];
+        const ghosts = ghostRefs.current.filter(Boolean) as HTMLSpanElement[];
+        const headings = headingBlockRefs.current.filter(Boolean) as HTMLHeadingElement[];
+        const bodies = bodyRefs.current.filter(Boolean) as HTMLParagraphElement[];
+
+        /* ── Reduced motion: make everything visible ── */
         if (reduceMotion) {
-          gsap.set([header, ...Array.from(list.children)], {
+          gsap.set([header, ...blocks], {
             autoAlpha: 1,
             x: 0,
             y: 0,
             scale: 1,
-            rotation: 0,
-            clipPath: "none",
+            filter: "blur(0px)",
           });
+          gsap.set(markers, { autoAlpha: 1, scale: 1 });
+          gsap.set(ghosts, { autoAlpha: 0.08, scale: 1, filter: "blur(0px)" });
+          gsap.set(headings, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
+          gsap.set(bodies, { autoAlpha: 1, y: 0 });
+          if (eyebrow) gsap.set(eyebrow, { autoAlpha: 1, x: 0, filter: "blur(0px)" });
+          if (eyebrowLine) gsap.set(eyebrowLine, { scaleX: 1 });
           if (heading) {
             gsap.set(heading.querySelectorAll(".scroll-word"), {
               y: 0,
               autoAlpha: 1,
             });
           }
-          const numbers = list.querySelectorAll(".why-number");
-          gsap.set(numbers, { autoAlpha: 1, scale: 1, rotation: 0 });
+          if (threadLineRef.current) {
+            gsap.set(threadLineRef.current, { strokeDashoffset: 0 });
+          }
           return;
         }
 
-        /* ── Mobile: separate ScrollTriggers, no pin ── */
+        /* ── Mobile: simple per-block entrance ── */
         if (isMobile) {
           // Header
           const headerTl = gsap.timeline({
             scrollTrigger: {
               trigger: header,
-              start: "top 90%",
-              end: "bottom 70%",
-              scrub: 1,
-            },
-          });
-          headerTl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
-
-          // List items
-          const listTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: list,
-              start: "top 88%",
-              end: "bottom 50%",
-              scrub: 1,
+              start: "top 85%",
+              end: "bottom 60%",
+              scrub: SCRUB.text,
             },
           });
 
-          const items = list.children;
-          for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const numberEl = item.querySelector(".why-number");
-            listTl.from(
-              item,
-              { autoAlpha: 0, y: 25, duration: 0.6 },
-              i * 0.1
-            );
-            if (numberEl) {
-              listTl.from(
-                numberEl,
-                {
-                  scale: 0.5,
-                  autoAlpha: 0,
-                  duration: 0.4,
-                  ease: "back.out(2)",
-                },
-                i * 0.1
-              );
-            }
+          if (eyebrow) {
+            headerTl.from(eyebrow, {
+              autoAlpha: 0,
+              x: -20,
+              filter: "blur(4px)",
+              duration: 0.3,
+              ease: EASE.enterSoft,
+            }, 0);
           }
+          if (eyebrowLine) {
+            headerTl.from(eyebrowLine, {
+              scaleX: 0,
+              transformOrigin: "left center",
+              duration: 0.3,
+              ease: EASE.enter,
+            }, 0);
+          }
+
+          headerTl.from(header.querySelector("h2") || header, {
+            autoAlpha: 0,
+            y: 20,
+            duration: 0.5,
+          }, 0.2);
+
+          // Each block: simple y entrance
+          blocks.forEach((block, i) => {
+            gsap.timeline({
+              scrollTrigger: {
+                trigger: block,
+                start: "top 85%",
+                end: "bottom 60%",
+                scrub: SCRUB.text,
+              },
+            }).from(block, {
+              autoAlpha: 0,
+              y: MOVE_MOBILE.y.enter,
+              duration: DUR.base,
+              ease: EASE.enterSoft,
+            });
+
+            // Markers still animate on mobile
+            if (markers[i]) {
+              gsap.timeline({
+                scrollTrigger: {
+                  trigger: block,
+                  start: "top 80%",
+                  end: "top 50%",
+                  scrub: SCRUB.text,
+                },
+              }).from(markers[i], {
+                scale: 0.5,
+                autoAlpha: 0,
+                duration: 0.4,
+                ease: EASE.elastic,
+              });
+            }
+          });
 
           return;
         }
 
-        /* ── Desktop: pinned fullscreen scrub ── */
+        /* ── Desktop: per-block ScrollTriggers with progress thread ── */
         if (isDesktop) {
-          const tl = gsap.timeline({
+          // ── Header animation ──
+          const headerTl = gsap.timeline({
             scrollTrigger: {
-              trigger: section,
-              start: "top top",
-              end: "+=130vh",
-              pin: true,
-              anticipatePin: 1,
-              scrub: 1,
+              trigger: header,
+              start: "top 80%",
+              end: "bottom 50%",
+              scrub: SCRUB.text,
             },
           });
 
-          // 0-0.05: Label
-          const label = header.querySelector(".why-label");
-          if (label) {
-            tl.from(label, { autoAlpha: 0, x: -20, duration: 0.05 }, 0);
+          if (eyebrow) {
+            headerTl.from(eyebrow, {
+              autoAlpha: 0,
+              x: -30,
+              filter: "blur(4px)",
+              duration: 0.08,
+              ease: EASE.enterSoft,
+            }, 0);
+          }
+          if (eyebrowLine) {
+            headerTl.from(eyebrowLine, {
+              scaleX: 0,
+              transformOrigin: "left center",
+              duration: 0.08,
+              ease: EASE.enter,
+            }, 0);
           }
 
-          // 0.03-0.25: Word-by-word heading
+          // Word-by-word heading
           if (heading) {
             const words = heading.querySelectorAll(".scroll-word");
             if (words.length) {
+              const totalDuration = 0.3;
+              const perWord = totalDuration / words.length;
               words.forEach((word, i) => {
-                tl.to(
+                headerTl.fromTo(
                   word,
+                  { autoAlpha: 0, y: 60, rotateX: -40 },
                   {
-                    y: 0,
                     autoAlpha: 1,
-                    duration: 0.04,
-                    ease: "power2.out",
+                    y: 0,
+                    rotateX: 0,
+                    duration: DUR.slow / 10,
+                    ease: EASE.enter,
                   },
-                  0.03 + i * (0.22 / words.length)
+                  0.05 + i * perWord
                 );
               });
             }
           }
 
-          // 0.3-0.92: Items sequential reveal
-          const items = list.children;
-          for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const numberEl = item.querySelector(".why-number");
-            const itemStart = 0.3 + i * 0.1;
+          // ── Progress thread ──
+          const threadLine = threadLineRef.current;
+          if (threadLine && container) {
+            const totalHeight = container.scrollHeight;
+            gsap.set(threadLine, {
+              strokeDasharray: totalHeight,
+              strokeDashoffset: totalHeight,
+            });
 
-            tl.from(
-              item,
-              {
-                clipPath: "inset(0 100% 0 0)",
-                autoAlpha: 0,
-                x: -40,
-                duration: 0.1,
-                ease: "power3.out",
+            gsap.to(threadLine, {
+              strokeDashoffset: 0,
+              ease: "none",
+              scrollTrigger: {
+                trigger: container,
+                start: "top 70%",
+                end: "bottom 30%",
+                scrub: SCRUB.text,
               },
-              itemStart
-            );
+            });
+          }
 
-            if (numberEl) {
-              tl.from(
-                numberEl,
+          // ── Per-block animations ──
+          blocks.forEach((block, i) => {
+            const blockTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: block,
+                start: "top 70%",
+                end: "bottom 30%",
+                scrub: SCRUB.text,
+              },
+            });
+
+            // 1. Marker: scale up and fill with glow
+            if (markers[i]) {
+              blockTl.fromTo(
+                markers[i],
                 {
-                  scale: 0,
-                  rotation: -30,
-                  autoAlpha: 0,
-                  duration: 0.08,
-                  ease: "back.out(2.5)",
+                  scale: 0.5,
+                  autoAlpha: 0.3,
+                  borderColor: "rgba(0,240,255,0.2)",
+                  boxShadow: `0 0 0px ${GLOW.primary}`,
                 },
-                itemStart + 0.03
+                {
+                  scale: 1,
+                  autoAlpha: 1,
+                  borderColor: GLOW.primary,
+                  boxShadow: `0 0 20px ${GLOW.primary}40, 0 0 6px ${GLOW.primary}20`,
+                  duration: DUR.base,
+                  ease: EASE.enter,
+                },
+                0
               );
             }
-          }
+
+            // 2. Ghost number
+            if (ghosts[i]) {
+              blockTl.fromTo(
+                ghosts[i],
+                {
+                  autoAlpha: 0,
+                  scale: 2,
+                  filter: BLUR.enter,
+                },
+                {
+                  autoAlpha: 0.08,
+                  scale: 1,
+                  filter: "blur(0px)",
+                  duration: DUR.slow,
+                  ease: EASE.enter,
+                },
+                0
+              );
+            }
+
+            // 3. Heading from alternating side
+            if (headings[i]) {
+              const xFrom = i % 2 === 0 ? -80 : 80;
+              blockTl.fromTo(
+                headings[i],
+                {
+                  autoAlpha: 0,
+                  x: xFrom,
+                  filter: "blur(8px)",
+                },
+                {
+                  autoAlpha: 1,
+                  x: 0,
+                  filter: "blur(0px)",
+                  duration: DUR.base,
+                  ease: EASE.enter,
+                },
+                0.1
+              );
+            }
+
+            // 4. Body text
+            if (bodies[i]) {
+              blockTl.fromTo(
+                bodies[i],
+                {
+                  autoAlpha: 0,
+                  y: 40,
+                },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  duration: DUR.base,
+                  ease: EASE.enterSoft,
+                },
+                "-=0.5"
+              );
+            }
+          });
         }
       }
     );
@@ -182,71 +324,116 @@ export default function Why() {
     <section
       ref={sectionRef}
       id="por-que-elegirme"
-      className="section-pinned perspective-section relative"
+      className="relative py-[var(--section-padding)]"
       style={{ zIndex: 2, backgroundColor: "var(--bg-why)" }}
     >
-      <div className="section-overflow-wrapper pointer-events-none absolute inset-0">
-        <svg className="absolute left-0 top-0 w-full" viewBox="0 0 1440 120" fill="none" preserveAspectRatio="none" style={{ height: "60px" }}>
-          <path d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60" stroke="url(#wave-g)" strokeWidth="0.8" opacity="0.15">
-            <animate attributeName="d" values="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60;M0,60 C240,0 480,120 720,60 C960,0 1200,120 1440,60;M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60" dur="10s" repeatCount="indefinite" />
-          </path>
-          <defs>
-            <linearGradient id="wave-g" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#4F46E5" stopOpacity="0" />
-              <stop offset="50%" stopColor="#7C3AED" />
-              <stop offset="100%" stopColor="#EC4899" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <svg className="absolute left-0 top-0 h-full w-[300px] opacity-60 max-md:hidden" viewBox="0 0 300 700" fill="none">
-          <path d="M150,0 L150,100 L80,100 L80,200 L200,200 L200,300 L120,300 L120,400 L180,400 L180,500 L100,500 L100,600 L160,600 L160,700" stroke="url(#why-circuit-g)" strokeWidth="0.5" opacity="0.1" strokeDasharray="6 10">
-            <animate attributeName="stroke-dashoffset" from="0" to="-160" dur="10s" repeatCount="indefinite" />
-          </path>
-          <circle cx="80" cy="200" r="3" fill="#7C3AED" opacity="0.2"><animate attributeName="opacity" values="0.15;0.35;0.15" dur="3s" repeatCount="indefinite" /></circle>
-          <circle cx="200" cy="300" r="3" fill="#EC4899" opacity="0.2"><animate attributeName="opacity" values="0.15;0.35;0.15" dur="4s" repeatCount="indefinite" /></circle>
-          <defs>
-            <linearGradient id="why-circuit-g" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#4F46E5" stopOpacity="0" />
-              <stop offset="15%" stopColor="#7C3AED" />
-              <stop offset="50%" stopColor="#A78BFA" />
-              <stop offset="85%" stopColor="#EC4899" />
-              <stop offset="100%" stopColor="#F472B6" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <svg className="absolute right-0 top-1/4 h-[400px] w-[250px] opacity-50 max-md:hidden" viewBox="0 0 250 400" fill="none">
-          <polygon points="60,20 90,5 120,20 120,50 90,65 60,50" stroke="#7C3AED" strokeWidth="0.4" opacity="0.06" />
-          <polygon points="120,20 150,5 180,20 180,50 150,65 120,50" stroke="#A78BFA" strokeWidth="0.4" opacity="0.05" />
-          <polygon points="60,80 90,65 120,80 120,110 90,125 60,110" stroke="#A78BFA" strokeWidth="0.4" opacity="0.06" />
-          <polygon points="120,80 150,65 180,80 180,110 150,125 120,110" stroke="#F472B6" strokeWidth="0.4" opacity="0.05" />
-          <polygon points="60,140 90,125 120,140 120,170 90,185 60,170" stroke="#EC4899" strokeWidth="0.4" opacity="0.05" />
-          <polygon points="120,140 150,125 180,140 180,170 150,185 120,170" stroke="#818CF8" strokeWidth="0.4" opacity="0.06" />
-          <polygon points="120,80 150,65 180,80 180,110 150,125 120,110" fill="url(#why-hex-g)" opacity="0">
-            <animate attributeName="opacity" values="0;0.08;0" dur="4s" repeatCount="indefinite" />
-          </polygon>
-          <defs><radialGradient id="why-hex-g"><stop offset="0%" stopColor="#7C3AED" /><stop offset="100%" stopColor="#7C3AED" stopOpacity="0" /></radialGradient></defs>
-        </svg>
-      </div>
-
-      <div className="section-pinned-inner mx-auto max-w-[var(--container-max)] px-6 py-[var(--section-padding)]">
-        <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
-          <div ref={headerRef} className="will-change-clip">
-            <span className="why-label mb-4 inline-block font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]">
-              Por que Elegirme
-            </span>
-            <h2 ref={headingRef} className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white">
-              La diferencia esta en los detalles
-            </h2>
-          </div>
-          <div ref={listRef} className="flex flex-col gap-6">
-            {WHY_ITEMS.map((item) => (
-              <WhyItem key={item.number} number={item.number} title={item.title} desc={item.desc} />
-            ))}
-          </div>
+      {/* Section header */}
+      <div className="mx-auto max-w-[var(--container-max)] px-6 mb-16">
+        <div ref={headerRef}>
+          <span
+            className="eyebrow mb-4 inline-flex items-center gap-3 font-[var(--font-primary)] text-xs font-semibold uppercase tracking-[3px] text-[var(--purple-light)]"
+            ref={eyebrowRef}
+          >
+            <span
+              className="eyebrow-line inline-block h-px w-8 bg-[var(--purple-light)]"
+              ref={eyebrowLineRef}
+            />
+            Por que Elegirme
+          </span>
+          <h2
+            ref={headingRef}
+            className="font-[var(--font-primary)] text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.2] text-white max-w-xl"
+            style={{ perspective: "800px" }}
+          >
+            La diferencia esta en los detalles
+          </h2>
         </div>
       </div>
+
+      {/* Reason blocks with progress thread */}
+      <div className="relative mx-auto max-w-[var(--container-max)] px-6" ref={reasonsContainerRef}>
+        {/* Progress thread SVG — desktop only */}
+        <svg
+          ref={threadRef}
+          className="progress-thread absolute top-0 h-full w-[2px] max-md:hidden"
+          style={{ left: "24px" }}
+          aria-hidden="true"
+        >
+          <line
+            ref={threadLineRef}
+            x1="1"
+            y1="0"
+            x2="1"
+            y2="100%"
+            className="progress-thread-line"
+            stroke={GLOW.primary}
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+
+        {/* Reason blocks */}
+        <div className="flex flex-col gap-0">
+          {WHY_ITEMS.map((item, i) => (
+            <div
+              key={item.number}
+              ref={(el) => {
+                blockRefs.current[i] = el;
+              }}
+              className="reason-block relative grid gap-8 py-12 lg:grid-cols-[60px_1fr] lg:gap-16 border-b border-[var(--border-default)] last:border-b-0"
+            >
+              {/* Number marker (left) */}
+              <div className="relative flex justify-center">
+                <div
+                  ref={(el) => {
+                    markerRefs.current[i] = el;
+                  }}
+                  className="flex h-12 w-12 items-center justify-center rounded-full border border-[var(--border-glow)] text-[var(--glow-primary)] font-[var(--font-primary)] font-bold text-sm"
+                >
+                  {item.number}
+                </div>
+              </div>
+
+              {/* Content (right) */}
+              <div className="relative">
+                {/* Ghost number — desktop only */}
+                <span
+                  ref={(el) => {
+                    ghostRefs.current[i] = el;
+                  }}
+                  className="ghost-number pointer-events-none absolute select-none font-[var(--font-primary)] text-[8rem] font-black leading-none text-white max-md:hidden"
+                  style={{
+                    top: "-10px",
+                    [i % 2 === 0 ? "right" : "left"]: "-20px",
+                    opacity: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  {item.number}
+                </span>
+                <h4
+                  ref={(el) => {
+                    headingBlockRefs.current[i] = el;
+                  }}
+                  className="mb-2 font-[var(--font-primary)] text-xl font-semibold text-white"
+                >
+                  {item.title}
+                </h4>
+                <p
+                  ref={(el) => {
+                    bodyRefs.current[i] = el;
+                  }}
+                  className="text-[var(--text-secondary)] leading-relaxed max-w-lg"
+                >
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="whisper-divider" />
     </section>
   );
 }

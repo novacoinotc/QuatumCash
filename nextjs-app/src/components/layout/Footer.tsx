@@ -2,7 +2,12 @@
 
 import { useRef, useEffect } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { FOOTER_NAV, FOOTER_SERVICES, FOOTER_ECOSYSTEM } from "@/lib/constants";
+import { DUR, EASE, STAGGER } from "@/lib/animation";
+import {
+  FOOTER_NAV,
+  FOOTER_SERVICES,
+  FOOTER_ECOSYSTEM,
+} from "@/lib/constants";
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
@@ -11,8 +16,16 @@ export default function Footer() {
     const footer = footerRef.current;
     if (!footer) return;
 
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReduced) {
+      gsap.set(footer.querySelectorAll(".footer-col, .footer-bottom"), {
+        autoAlpha: 1,
+        y: 0,
+      });
+      return;
+    }
 
     // Staggered reveal of footer columns
     const columns = footer.querySelectorAll(".footer-col");
@@ -30,16 +43,22 @@ export default function Footer() {
     tl.from(columns, {
       autoAlpha: 0,
       y: 30,
-      stagger: 0.08,
+      stagger: STAGGER.small,
       duration: 0.4,
+      ease: EASE.enterSoft,
     });
 
     if (bottomBar) {
-      tl.from(bottomBar, {
-        autoAlpha: 0,
-        y: 15,
-        duration: 0.3,
-      }, "-=0.1");
+      tl.from(
+        bottomBar,
+        {
+          autoAlpha: 0,
+          y: 15,
+          duration: 0.3,
+          ease: EASE.enterSoft,
+        },
+        "-=0.1"
+      );
     }
 
     return () => {
@@ -49,16 +68,19 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer ref={footerRef} className="relative border-t border-[var(--dark-border)] bg-[var(--dark)] py-16">
+    <footer
+      ref={footerRef}
+      className="relative border-t border-[var(--dark-border)] bg-[var(--surface-dark)] py-16"
+    >
       {/* Top line with gradient */}
-      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--purple)]/30 to-transparent" />
+      <div className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--glow-primary)]/30 to-transparent" />
 
       <div className="mx-auto max-w-[var(--container-max)] px-6">
         <div className="mb-12 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="footer-col">
             <a href="#" className="mb-4 flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--blue)] via-[var(--purple)] to-[var(--pink)] font-bold text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-violet-500 to-violet-600 font-bold text-white">
                 Q
               </span>
               <span className="font-[var(--font-primary)] text-lg font-bold text-white">
@@ -81,7 +103,7 @@ export default function Footer() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--purple-light)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
                 >
                   {link.label}
                 </a>
@@ -99,7 +121,7 @@ export default function Footer() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--purple-light)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
                 >
                   {link.label}
                 </a>
@@ -119,7 +141,7 @@ export default function Footer() {
                   href={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener" : undefined}
-                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--purple-light)]"
+                  className="text-sm text-[var(--gray-500)] transition-colors hover:text-[var(--glow-primary)]"
                 >
                   {link.label}
                 </a>
@@ -139,7 +161,7 @@ export default function Footer() {
               href="https://www.novacoin.mx"
               target="_blank"
               rel="noopener"
-              className="text-[var(--purple-light)] hover:underline"
+              className="text-[var(--glow-primary)] hover:underline"
             >
               NovaCoin.mx
             </a>

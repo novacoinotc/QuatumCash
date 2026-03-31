@@ -60,25 +60,27 @@ export default function ServiceCard({
   tags,
 }: ServiceCardProps) {
   return (
-    <div className="card-hover group rounded-2xl border border-[var(--dark-border)] bg-[var(--dark-card)]/60 p-8 backdrop-blur-sm">
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--purple)]/10 text-[var(--purple-light)] transition-all duration-500 group-hover:bg-[var(--purple)]/20 group-hover:shadow-[0_0_25px_rgba(124,58,237,0.2)] group-hover:scale-110">
-        {ICONS[icon]}
-      </div>
-      <h3 className="mb-3 font-[var(--font-primary)] text-lg font-semibold text-white transition-colors duration-300 group-hover:text-[var(--purple-light)]">
-        {title}
-      </h3>
-      <p className="mb-5 text-sm leading-relaxed text-[var(--gray-400)]">
-        {desc}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-lg bg-[var(--purple)]/8 px-3 py-1 text-xs font-medium text-[var(--purple-light)] transition-colors duration-300 group-hover:bg-[var(--purple)]/15"
-          >
-            {tag}
-          </span>
-        ))}
+    <div className="glass-card magnetic-card group rounded-2xl p-8">
+      <div className="relative z-10">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[rgba(0,240,255,0.06)] text-[var(--glow-primary)] transition-all duration-500 group-hover:bg-[rgba(0,240,255,0.12)] group-hover:shadow-[0_0_25px_rgba(0,240,255,0.15)] group-hover:scale-110">
+          {ICONS[icon]}
+        </div>
+        <h3 className="mb-3 font-[var(--font-primary)] text-lg font-semibold text-white transition-colors duration-300 group-hover:text-[var(--glow-primary)]">
+          {title}
+        </h3>
+        <p className="mb-5 text-sm leading-relaxed text-[var(--text-secondary)]">
+          {desc}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-lg bg-[rgba(0,240,255,0.04)] px-3 py-1 text-xs font-medium text-[var(--glow-primary)] transition-colors duration-300 group-hover:bg-[rgba(0,240,255,0.08)]"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
