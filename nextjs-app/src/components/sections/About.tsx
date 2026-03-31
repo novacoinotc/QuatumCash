@@ -259,7 +259,7 @@ export default function About() {
     <section
       ref={sectionRef}
       id="sobre-mi"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden max-md:overflow-visible"
       style={{ background: "var(--bg-elevated)" }}
     >
       <div ref={trackRef} className="hscroll-track">
@@ -300,7 +300,7 @@ export default function About() {
 
         {/* ── Panel 2: Features ── */}
         <div className="hscroll-panel">
-          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 px-6 sm:grid-cols-3">
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 px-6 md:grid-cols-3">
             {FEATURES.map((f, i) => (
               <div
                 key={i}

@@ -40,6 +40,22 @@
   --glow-accent: var(--mint);
   --glow-warm: var(--warm);
 
+  /* Compat aliases (referenced by v2 components) */
+  --container-max: var(--container);
+  --section-padding: var(--section-py);
+  --font-primary: var(--font-heading);
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-500: #64748B;
+  --gray-600: #475569;
+  --purple-light: #A78BFA;
+  --bg-services: var(--bg-elevated);
+  --bg-contact: var(--bg);
+  --bg-why: var(--bg-elevated);
+  --bg-stats: var(--bg);
+  --dark-border: var(--border);
+  --dark-card: var(--bg-card);
+
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, var(--cyan), var(--violet));
   --gradient-cta: linear-gradient(135deg, #0891B2, #7C3AED);

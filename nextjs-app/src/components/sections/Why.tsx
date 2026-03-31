@@ -27,7 +27,7 @@ export default function Why() {
     if (!section || !header || !container) return;
 
     /* ── Split heading into words ── */
-    if (heading && window.innerWidth > 768) {
+    if (heading && typeof window !== "undefined" && window.innerWidth > 768) {
       const text = heading.textContent || "";
       heading.innerHTML = text
         .split(" ")
@@ -352,15 +352,9 @@ export default function Why() {
                   }}
                   className="timeline-dot flex items-center justify-center text-[10px] font-bold text-[var(--cyan)]"
                   style={{
-                    position: "relative",
-                    left: "auto",
-                    transform: "none",
                     width: "32px",
                     height: "32px",
                     fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
                 >
                   {item.number}
@@ -409,11 +403,7 @@ export default function Why() {
               <div className="hidden max-md:block">
                 <h4
                   ref={(el) => {
-                    /* On mobile, these are the visible title/desc.
-                       Only assign refs if not already assigned by desktop columns. */
-                    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-                      titleRefs.current[i] = el;
-                    }
+                    titleRefs.current[i] = el;
                   }}
                   className="mb-1 font-[var(--font-heading)] text-lg font-semibold text-[var(--text-1,#fff)]"
                 >
@@ -421,9 +411,7 @@ export default function Why() {
                 </h4>
                 <p
                   ref={(el) => {
-                    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-                      descRefs.current[i] = el;
-                    }
+                    descRefs.current[i] = el;
                   }}
                   className="text-sm text-[var(--text-2,var(--gray-400))] leading-relaxed"
                 >

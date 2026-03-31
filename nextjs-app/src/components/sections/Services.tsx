@@ -68,7 +68,7 @@ export default function Services() {
     if (!section || !header || !grid) return;
 
     /* ── Split heading into words for reveal ── */
-    if (heading && window.innerWidth > 768) {
+    if (heading && typeof window !== "undefined" && window.innerWidth > 768) {
       const text = heading.textContent || "";
       heading.innerHTML = text
         .split(" ")

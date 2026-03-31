@@ -177,7 +177,7 @@ export default function Navbar() {
               href={link.href}
               onClick={(e) => handleNavClick(e, link.href)}
               className={`mobile-nav-link text-xl font-medium transition-colors hover:text-[var(--cyan)] ${
-                link.isCta ? "gradient-text" : "text-[var(--gray-300)]"
+                link.isCta ? "gradient-text" : "text-[var(--text-2)]"
               }`}
               style={{ visibility: "hidden" }}
             >

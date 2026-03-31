@@ -394,7 +394,7 @@ export default function Stats() {
       {/* Section header */}
       <div
         ref={headerRef}
-        className="absolute left-0 right-0 top-8 z-10 text-center"
+        className="md:absolute left-0 right-0 top-8 z-10 text-center max-md:relative max-md:pt-8 max-md:pb-4"
       >
         <div className="eyebrow justify-center">
           <span className="eyebrow-line" />
@@ -404,14 +404,14 @@ export default function Stats() {
       </div>
 
       {/* Stat slides */}
-      <div className="relative min-h-screen max-md:grid max-md:grid-cols-2 max-md:gap-4 max-md:px-6 max-md:py-24">
+      <div className="relative min-h-screen max-md:min-h-0 max-md:grid max-md:grid-cols-2 max-md:gap-4 max-md:px-6 max-md:py-8">
         {SELECTED_STATS.map((stat, i) => (
           <div
             key={stat.label}
             ref={setSlideRef(i)}
             className="
               md:absolute md:inset-0 md:flex md:flex-col md:items-center md:justify-center
-              max-md:glass-card max-md:flex max-md:flex-col max-md:items-center max-md:justify-center max-md:rounded-2xl max-md:p-6
+              max-md:glass max-md:flex max-md:flex-col max-md:items-center max-md:justify-center max-md:rounded-2xl max-md:p-6 max-md:min-h-[160px]
             "
             style={{ willChange: "opacity, transform" }}
           >

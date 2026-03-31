@@ -260,7 +260,7 @@ export default function Contact() {
       <div className="pointer-events-none absolute inset-0">
         <div
           ref={orb1Ref}
-          className="absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-3/4 rounded-full"
+          className="absolute left-1/2 top-1/3 h-[600px] w-[600px] max-md:h-[300px] max-md:w-[300px] -translate-x-3/4 rounded-full"
           style={{
             background:
               "radial-gradient(circle, rgba(0,240,255,0.14) 0%, rgba(0,240,255,0.04) 40%, transparent 70%)",
@@ -269,7 +269,7 @@ export default function Contact() {
         />
         <div
           ref={orb2Ref}
-          className="absolute right-1/4 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full"
+          className="absolute right-1/4 top-1/2 h-[500px] w-[500px] max-md:h-[250px] max-md:w-[250px] -translate-y-1/2 rounded-full"
           style={{
             background:
               "radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(139,92,246,0.03) 40%, transparent 70%)",

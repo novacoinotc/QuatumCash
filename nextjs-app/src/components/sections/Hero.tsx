@@ -436,7 +436,7 @@ export default function Hero() {
       {/* Content grid */}
       <div
         ref={contentRef}
-        className="relative z-[5] mx-auto grid min-h-screen max-w-[var(--container)] grid-cols-1 items-center px-6 pt-24 pb-12 md:grid-cols-2"
+        className="relative z-[5] mx-auto grid min-h-screen max-w-[var(--container)] grid-cols-1 items-center px-6 pt-24 pb-12 max-md:pb-20 md:grid-cols-2"
       >
         <div className="flex flex-col justify-center text-center md:text-left md:pr-12">
           {/* Eyebrow */}
@@ -454,7 +454,7 @@ export default function Hero() {
           {/* Heading */}
           <h1
             ref={headingRef}
-            className="mb-6 font-[var(--font-heading)] text-[clamp(2.4rem,5vw,4.2rem)] font-extrabold leading-[1.08] text-[var(--text-1)]"
+            className="mb-6 font-[var(--font-heading)] text-[clamp(2rem,7vw,4.2rem)] font-extrabold leading-[1.08] text-[var(--text-1)]"
             style={{ perspective: "600px" }}
           >
             <span className="hero-static">Tu aliada experta en el</span>
@@ -471,7 +471,7 @@ export default function Hero() {
           {/* Subtitle */}
           <p
             ref={subtitleRef}
-            className="mb-8 max-w-lg text-lg text-[var(--text-2)] mx-auto md:mx-0"
+            className="mb-8 max-w-lg text-lg max-md:text-base text-[var(--text-2)] mx-auto md:mx-0"
           >
             La cuenta P2P mas grande de Mexico.{" "}
             <strong className="text-[var(--text-1)]">83,000+</strong> operaciones
@@ -512,7 +512,7 @@ export default function Hero() {
           {/* Trust badges */}
           <div
             ref={trustRef}
-            className="flex flex-wrap justify-center md:justify-start gap-5 text-sm text-[var(--text-3)]"
+            className="flex flex-wrap justify-center md:justify-start gap-5 max-md:gap-3 text-sm max-md:text-xs text-[var(--text-3)]"
           >
             {["KYC Verificada", "Comerciante Pro", "100% Completadas"].map(
               (t) => (
