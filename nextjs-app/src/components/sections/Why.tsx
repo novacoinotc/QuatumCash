@@ -19,96 +19,163 @@ export default function Why() {
     const heading = headingRef.current;
     if (!section || !header || !list) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const isMobile = window.innerWidth <= 768;
+    const mm = gsap.matchMedia();
 
-    if (prefersReduced) {
-      gsap.set([header, ...Array.from(list.children)], { opacity: 1, x: 0, y: 0 });
-      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
-      return;
-    }
+    mm.add(
+      {
+        isDesktop: "(min-width: 769px)",
+        isMobile: "(max-width: 768px)",
+        reduceMotion: "(prefers-reduced-motion: reduce)",
+      },
+      (context) => {
+        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-    if (isMobile) {
-      const headerTl = gsap.timeline({
-        scrollTrigger: { trigger: header, start: "top 90%", end: "bottom 70%", scrub: 1 },
-      });
-      headerTl.from(header, { opacity: 0, y: 20, duration: 1 });
+        /* ── Reduced motion: make everything visible immediately ── */
+        if (reduceMotion) {
+          gsap.set([header, ...Array.from(list.children)], {
+            autoAlpha: 1,
+            x: 0,
+            y: 0,
+            scale: 1,
+            rotation: 0,
+            clipPath: "none",
+          });
+          if (heading) {
+            gsap.set(heading.querySelectorAll(".scroll-word"), {
+              y: 0,
+              autoAlpha: 1,
+            });
+          }
+          const numbers = list.querySelectorAll(".why-number");
+          gsap.set(numbers, { autoAlpha: 1, scale: 1, rotation: 0 });
+          return;
+        }
 
-      const listTl = gsap.timeline({
-        scrollTrigger: { trigger: list, start: "top 90%", end: "bottom 50%", scrub: 1 },
-      });
+        /* ── Mobile: separate ScrollTriggers, no pin ── */
+        if (isMobile) {
+          // Header
+          const headerTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: header,
+              start: "top 90%",
+              end: "bottom 70%",
+              scrub: 1,
+            },
+          });
+          headerTl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
 
-      const items = list.children;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const numberEl = item.querySelector(".why-number");
-        listTl.from(item, { opacity: 0, y: 20, duration: 0.6 }, i * 0.15);
-        if (numberEl) {
-          listTl.from(numberEl, { scale: 0.5, opacity: 0, duration: 0.4, ease: "back.out(2)" }, i * 0.15);
+          // List items
+          const listTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: list,
+              start: "top 88%",
+              end: "bottom 50%",
+              scrub: 1,
+            },
+          });
+
+          const items = list.children;
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const numberEl = item.querySelector(".why-number");
+            listTl.from(
+              item,
+              { autoAlpha: 0, y: 25, duration: 0.6 },
+              i * 0.1
+            );
+            if (numberEl) {
+              listTl.from(
+                numberEl,
+                {
+                  scale: 0.5,
+                  autoAlpha: 0,
+                  duration: 0.4,
+                  ease: "back.out(2)",
+                },
+                i * 0.1
+              );
+            }
+          }
+
+          return;
+        }
+
+        /* ── Desktop: pinned fullscreen scrub ── */
+        if (isDesktop) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=130vh",
+              pin: true,
+              anticipatePin: 1,
+              scrub: 1,
+            },
+          });
+
+          // 0-0.05: Label
+          const label = header.querySelector(".why-label");
+          if (label) {
+            tl.from(label, { autoAlpha: 0, x: -20, duration: 0.05 }, 0);
+          }
+
+          // 0.03-0.25: Word-by-word heading
+          if (heading) {
+            const words = heading.querySelectorAll(".scroll-word");
+            if (words.length) {
+              words.forEach((word, i) => {
+                tl.to(
+                  word,
+                  {
+                    y: 0,
+                    autoAlpha: 1,
+                    duration: 0.04,
+                    ease: "power2.out",
+                  },
+                  0.03 + i * (0.22 / words.length)
+                );
+              });
+            }
+          }
+
+          // 0.3-0.92: Items sequential reveal
+          const items = list.children;
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const numberEl = item.querySelector(".why-number");
+            const itemStart = 0.3 + i * 0.1;
+
+            tl.from(
+              item,
+              {
+                clipPath: "inset(0 100% 0 0)",
+                autoAlpha: 0,
+                x: -40,
+                duration: 0.1,
+                ease: "power3.out",
+              },
+              itemStart
+            );
+
+            if (numberEl) {
+              tl.from(
+                numberEl,
+                {
+                  scale: 0,
+                  rotation: -30,
+                  autoAlpha: 0,
+                  duration: 0.08,
+                  ease: "back.out(2.5)",
+                },
+                itemStart + 0.03
+              );
+            }
+          }
         }
       }
+    );
 
-      return () => {
-        headerTl.scrollTrigger?.kill(); headerTl.kill();
-        listTl.scrollTrigger?.kill(); listTl.kill();
-      };
-    }
-
-    // Desktop: pinned fullscreen
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=120vh",
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-      },
-    });
-
-    // 0-0.05: Label
-    const label = header.querySelector(".why-label");
-    if (label) {
-      tl.from(label, { opacity: 0, y: 20, duration: 0.05 }, 0);
-    }
-
-    // 0.03-0.25: Word-by-word heading
-    if (heading) {
-      const words = heading.querySelectorAll(".scroll-word");
-      if (words.length) {
-        words.forEach((word, i) => {
-          tl.to(word, {
-            y: 0, opacity: 1, duration: 0.04, ease: "power2.out",
-          }, 0.03 + i * (0.22 / words.length));
-        });
-      }
-    }
-
-    // 0.3-0.9: Items sequential reveal
-    const items = list.children;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      const numberEl = item.querySelector(".why-number");
-
-      tl.from(item, {
-        clipPath: "inset(0 100% 0 0)",
-        opacity: 0,
-        x: -50,
-        duration: 0.12,
-        ease: "power3.out",
-      }, 0.3 + i * 0.12);
-
-      if (numberEl) {
-        tl.from(numberEl, {
-          scale: 0, rotate: -45, opacity: 0,
-          duration: 0.08, ease: "back.out(3)",
-        }, 0.35 + i * 0.12);
-      }
-    }
-
-    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+    return () => mm.revert();
   }, []);
 
   return (

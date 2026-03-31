@@ -60,11 +60,11 @@ export default function ServiceCard({
   tags,
 }: ServiceCardProps) {
   return (
-    <div className="group rounded-2xl border border-[var(--dark-border)] bg-[var(--dark-card)]/60 p-8 backdrop-blur-sm transition-[border-color,background-color] duration-400 hover:border-[var(--purple)]/30 hover:bg-[var(--dark-card)]">
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--purple)]/10 text-[var(--purple-light)] transition-[background-color,box-shadow] duration-400 group-hover:bg-[var(--purple)]/15 group-hover:shadow-[0_0_20px_rgba(124,58,237,0.15)]">
+    <div className="card-hover group rounded-2xl border border-[var(--dark-border)] bg-[var(--dark-card)]/60 p-8 backdrop-blur-sm">
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--purple)]/10 text-[var(--purple-light)] transition-all duration-500 group-hover:bg-[var(--purple)]/20 group-hover:shadow-[0_0_25px_rgba(124,58,237,0.2)] group-hover:scale-110">
         {ICONS[icon]}
       </div>
-      <h3 className="mb-3 font-[var(--font-primary)] text-lg font-semibold text-white">
+      <h3 className="mb-3 font-[var(--font-primary)] text-lg font-semibold text-white transition-colors duration-300 group-hover:text-[var(--purple-light)]">
         {title}
       </h3>
       <p className="mb-5 text-sm leading-relaxed text-[var(--gray-400)]">
@@ -74,7 +74,7 @@ export default function ServiceCard({
         {tags.map((tag) => (
           <span
             key={tag}
-            className="rounded-lg bg-[var(--purple)]/8 px-3 py-1 text-xs font-medium text-[var(--purple-light)]"
+            className="rounded-lg bg-[var(--purple)]/8 px-3 py-1 text-xs font-medium text-[var(--purple-light)] transition-colors duration-300 group-hover:bg-[var(--purple)]/15"
           >
             {tag}
           </span>

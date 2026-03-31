@@ -23,84 +23,122 @@ export default function Contact() {
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const isMobile = window.innerWidth <= 768;
 
     if (prefersReduced) {
-      gsap.set([content, visual], { opacity: 1, y: 0 });
-      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
+      gsap.set([content, visual], { autoAlpha: 1, y: 0 });
+      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, autoAlpha: 1 });
       return;
     }
 
-    if (isMobile) {
+    const mm = gsap.matchMedia();
+
+    // --- Mobile ---
+    mm.add("(max-width: 768px)", () => {
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: section, start: "top 85%", end: "center center", scrub: 1 },
+        scrollTrigger: {
+          trigger: section,
+          start: "top 80%",
+          end: "center center",
+          scrub: 1,
+        },
       });
-      tl.from(content, { opacity: 0, y: 20, duration: 1 });
-      tl.from(visual, { opacity: 0, y: 20, duration: 1 }, "-=0.6");
 
-      return () => { tl.scrollTrigger?.kill(); tl.kill(); };
-    }
+      tl.from(content, { autoAlpha: 0, y: 25, duration: 1 });
+      tl.from(visual, { autoAlpha: 0, y: 25, duration: 1 }, "-=0.6");
 
-    // Desktop: pinned fullscreen
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=100vh",
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-      },
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
     });
 
-    // 0-0.05: Label
-    const label = content.querySelector(".contact-label");
-    if (label) {
-      tl.from(label, { opacity: 0, y: 20, duration: 0.05 }, 0);
-    }
+    // --- Desktop ---
+    mm.add("(min-width: 769px)", () => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "+=110vh",
+          pin: true,
+          anticipatePin: 1,
+          scrub: 1,
+        },
+      });
 
-    // 0.03-0.25: Word-by-word heading
-    if (heading) {
-      const words = heading.querySelectorAll(".scroll-word");
-      if (words.length) {
-        words.forEach((word, i) => {
-          tl.to(word, {
-            y: 0, opacity: 1, duration: 0.04, ease: "power2.out",
-          }, 0.03 + i * (0.22 / words.length));
-        });
+      // 0-0.05: Label
+      const label = content.querySelector(".contact-label");
+      if (label) {
+        tl.from(label, { autoAlpha: 0, x: -20, duration: 0.05 }, 0);
       }
-    }
 
-    // 0.25-0.35: Paragraph
-    const paragraph = content.querySelector(".contact-paragraph");
-    if (paragraph) {
-      tl.from(paragraph, { opacity: 0, y: 30, duration: 0.1 }, 0.25);
-    }
+      // 0.03-0.25: Word-by-word heading
+      if (heading) {
+        const words = heading.querySelectorAll(".scroll-word");
+        if (words.length) {
+          words.forEach((word, i) => {
+            tl.to(word, {
+              y: 0,
+              autoAlpha: 1,
+              duration: 0.04,
+              ease: "power2.out",
+            }, 0.03 + i * (0.22 / words.length));
+          });
+        }
+      }
 
-    // 0.35-0.45: Buttons
-    const buttonsRow = content.querySelector(".contact-buttons");
-    if (buttonsRow) {
-      tl.from(buttonsRow, { opacity: 0, scale: 0.9, y: 20, duration: 0.1, ease: "back.out(1.4)" }, 0.35);
-    }
+      // 0.25-0.35: Paragraph
+      const paragraph = content.querySelector(".contact-paragraph");
+      if (paragraph) {
+        tl.from(paragraph, {
+          autoAlpha: 0,
+          y: 25,
+          filter: "blur(3px)",
+          duration: 0.1,
+        }, 0.25);
+      }
 
-    // 0.45-0.55: Details
-    const details = content.querySelector(".contact-details");
-    if (details) {
-      tl.from(details, { opacity: 0, y: 20, duration: 0.1 }, 0.45);
-    }
+      // 0.35-0.45: Buttons (staggered)
+      const buttons = content.querySelectorAll(".contact-buttons > *");
+      if (buttons.length) {
+        tl.from(buttons, {
+          autoAlpha: 0,
+          y: 20,
+          scale: 0.92,
+          stagger: 0.08,
+          ease: "back.out(1.5)",
+          duration: 0.1,
+        }, 0.35);
+      }
 
-    // 0.2-0.55: ChatMockup 3D entrance
-    tl.from(visual, {
-      opacity: 0,
-      scale: 0.5,
-      rotateY: -20,
-      rotateX: 10,
-      y: 60,
-      duration: 0.35,
-      ease: "power3.out",
-    }, 0.2);
+      // 0.45-0.55: Details (staggered children)
+      const detailItems = content.querySelectorAll(".contact-details > *");
+      if (detailItems.length) {
+        tl.from(detailItems, {
+          autoAlpha: 0,
+          y: 15,
+          stagger: 0.05,
+          duration: 0.08,
+        }, 0.45);
+      }
 
-    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+      // 0.15-0.55: ChatMockup 3D entrance
+      tl.from(visual, {
+        autoAlpha: 0,
+        scale: 0.6,
+        rotateY: -15,
+        rotateX: 8,
+        y: 50,
+        duration: 0.4,
+        ease: "power3.out",
+      }, 0.15);
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
+    });
+
+    return () => mm.revert();
   }, []);
 
   return (

@@ -18,102 +18,149 @@ export default function About() {
     const heading = headingRef.current;
     if (!section || !content || !visual) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const isMobile = window.innerWidth <= 768;
+    const mm = gsap.matchMedia();
 
-    if (prefersReduced) {
-      gsap.set([content, visual], { opacity: 1, x: 0, y: 0 });
-      gsap.set(content.querySelectorAll(".about-feature"), { opacity: 1, y: 0 });
-      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
-      return;
-    }
-
-    const features = content.querySelectorAll(".about-feature");
-
-    if (isMobile) {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          end: "center center",
-          scrub: 1,
-        },
-      });
-
-      tl.from(content, { opacity: 0, y: 20, duration: 1 });
-      tl.from(visual, { opacity: 0, y: 20, duration: 1 }, "-=0.6");
-      if (features.length) {
-        tl.from(features, { opacity: 0, y: 20, stagger: 0.15, duration: 0.5 }, "-=0.4");
-      }
-
-      return () => { tl.scrollTrigger?.kill(); tl.kill(); };
-    }
-
-    // Desktop: pinned fullscreen with internal scrub
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=150vh",
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
+    mm.add(
+      {
+        isDesktop: "(min-width: 769px)",
+        isMobile: "(max-width: 768px)",
+        reduceMotion: "(prefers-reduced-motion: reduce)",
       },
-    });
+      (context) => {
+        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-    // 0-0.1: Label
-    const label = content.querySelector(".about-label");
-    if (label) {
-      tl.from(label, { opacity: 0, y: 20, duration: 0.1 }, 0);
-    }
+        const features = content.querySelectorAll(".about-feature");
+        const label = content.querySelector(".about-label");
+        const paragraphs = content.querySelectorAll(".about-paragraph");
 
-    // 0.05-0.35: Word-by-word heading reveal
-    if (heading) {
-      const words = heading.querySelectorAll(".scroll-word");
-      if (words.length) {
-        words.forEach((word, i) => {
-          tl.to(word, {
-            y: 0,
-            opacity: 1,
-            duration: 0.04,
-            ease: "power2.out",
-          }, 0.05 + i * (0.3 / words.length));
-        });
+        // Reduced motion: make everything visible, no animation
+        if (reduceMotion) {
+          gsap.set([content, visual], { autoAlpha: 1, x: 0, y: 0 });
+          gsap.set(features, { autoAlpha: 1, y: 0 });
+          if (label) gsap.set(label, { autoAlpha: 1, x: 0 });
+          gsap.set(paragraphs, { autoAlpha: 1, y: 0, filter: "blur(0px)" });
+          if (heading) {
+            gsap.set(heading.querySelectorAll(".scroll-word"), {
+              y: 0,
+              autoAlpha: 1,
+            });
+          }
+          return;
+        }
+
+        if (isMobile) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top 80%",
+              end: "center center",
+              scrub: 1,
+            },
+          });
+
+          tl.from(content, { autoAlpha: 0, y: 30, duration: 1 });
+          tl.from(visual, { autoAlpha: 0, y: 30, duration: 1 }, "-=0.6");
+          if (features.length) {
+            tl.from(
+              features,
+              { autoAlpha: 0, y: 20, stagger: 0.12, duration: 0.5 },
+              "-=0.4"
+            );
+          }
+          return;
+        }
+
+        // Desktop: pinned fullscreen with internal scrub
+        if (isDesktop) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=150vh",
+              pin: true,
+              anticipatePin: 1,
+              scrub: 1,
+            },
+          });
+
+          // 0-0.08: Label slide in from left
+          if (label) {
+            tl.from(
+              label,
+              { autoAlpha: 0, x: -30, duration: 0.08 },
+              0
+            );
+          }
+
+          // 0.05-0.35: Word-by-word heading reveal
+          if (heading) {
+            const words = heading.querySelectorAll(".scroll-word");
+            if (words.length) {
+              words.forEach((word, i) => {
+                const pos = 0.05 + i * (0.3 / words.length);
+                tl.to(
+                  word,
+                  {
+                    y: 0,
+                    autoAlpha: 1,
+                    duration: 0.04,
+                    ease: "power2.out",
+                  },
+                  pos
+                );
+              });
+            }
+          }
+
+          // 0.3-0.5: Paragraphs with blur
+          if (paragraphs.length) {
+            tl.from(
+              paragraphs,
+              {
+                autoAlpha: 0,
+                y: 30,
+                filter: "blur(3px)",
+                stagger: 0.06,
+                duration: 0.15,
+              },
+              0.3
+            );
+          }
+
+          // 0.35-0.65: Phone mockup 3D entrance
+          tl.from(
+            visual,
+            {
+              autoAlpha: 0,
+              scale: 0.7,
+              rotateY: -20,
+              x: 80,
+              duration: 0.3,
+              ease: "power3.out",
+            },
+            0.35
+          );
+
+          // 0.55-0.85: Feature cards stagger
+          if (features.length) {
+            tl.from(
+              features,
+              {
+                autoAlpha: 0,
+                x: -40,
+                rotateY: 8,
+                stagger: 0.07,
+                duration: 0.12,
+                ease: "back.out(1.4)",
+              },
+              0.55
+            );
+          }
+        }
       }
-    }
+    );
 
-    // 0.3-0.5: Paragraphs
-    const paragraphs = content.querySelectorAll(".about-paragraph");
-    if (paragraphs.length) {
-      tl.from(paragraphs, { opacity: 0, y: 30, stagger: 0.06, duration: 0.15 }, 0.3);
-    }
-
-    // 0.4-0.65: Phone 3D entrance
-    tl.from(visual, {
-      opacity: 0,
-      scale: 0.6,
-      rotateY: -25,
-      rotateX: 10,
-      duration: 0.25,
-      ease: "power3.out",
-    }, 0.4);
-
-    // 0.6-0.85: Feature cards stagger
-    if (features.length) {
-      tl.from(features, {
-        opacity: 0,
-        rotateX: 30,
-        scale: 0.85,
-        y: 40,
-        stagger: 0.06,
-        duration: 0.15,
-        ease: "back.out(1.4)",
-      }, 0.6);
-    }
-
-    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+    return () => mm.revert();
   }, []);
 
   return (

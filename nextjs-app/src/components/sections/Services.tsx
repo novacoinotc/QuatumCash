@@ -22,105 +22,215 @@ export default function Services() {
     const heading = headingRef.current;
     if (!section || !header || !grid) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const isMobile = window.innerWidth <= 768;
+    const mm = gsap.matchMedia();
 
-    if (prefersReduced) {
-      gsap.set([header, ...Array.from(grid.children)], { opacity: 1, y: 0 });
-      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
-      return;
-    }
+    mm.add(
+      {
+        isDesktop: "(min-width: 769px)",
+        isMobile: "(max-width: 768px)",
+        reduceMotion: "(prefers-reduced-motion: reduce)",
+      },
+      (context) => {
+        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-    if (isMobile) {
-      const headerTl = gsap.timeline({
-        scrollTrigger: { trigger: header, start: "top 90%", end: "bottom 70%", scrub: 1 },
-      });
-      headerTl.from(header, { opacity: 0, y: 20, duration: 1 });
+        /* ── Reduced motion: make everything visible immediately ── */
+        if (reduceMotion) {
+          gsap.set([header, ...Array.from(grid.children)], {
+            autoAlpha: 1,
+            y: 0,
+            x: 0,
+            scale: 1,
+            rotateX: 0,
+            rotateY: 0,
+            rotation: 0,
+            filter: "blur(0px)",
+          });
+          if (flow) {
+            const flowEls = flow.querySelectorAll(
+              ".flow-card-left, .flow-card-right, .flow-center"
+            );
+            gsap.set(flowEls, { autoAlpha: 1, x: 0, scale: 1, rotateY: 0, rotation: 0 });
+          }
+          if (heading) {
+            gsap.set(heading.querySelectorAll(".scroll-word"), {
+              y: 0,
+              autoAlpha: 1,
+            });
+          }
+          return;
+        }
 
-      if (flow) {
-        const flowTl = gsap.timeline({
-          scrollTrigger: { trigger: flow, start: "top 90%", end: "bottom 60%", scrub: 1 },
-        });
-        const mxnCard = flow.querySelector(".flow-card-left");
-        const cryptoCard = flow.querySelector(".flow-card-right");
-        const hexCenter = flow.querySelector(".flow-center");
-        if (mxnCard && cryptoCard && hexCenter) {
-          flowTl.from(mxnCard, { opacity: 0, y: 20, duration: 1 });
-          flowTl.from(hexCenter, { opacity: 0, scale: 0.8, rotate: -30, duration: 1 }, "-=0.7");
-          flowTl.from(cryptoCard, { opacity: 0, y: 20, duration: 1 }, "-=0.7");
+        /* ── Mobile: separate ScrollTriggers, no pin ── */
+        if (isMobile) {
+          // Header
+          const headerTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: header,
+              start: "top 90%",
+              end: "bottom 70%",
+              scrub: 1,
+            },
+          });
+          headerTl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
+
+          // ExchangeFlow
+          if (flow) {
+            const flowTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: flow,
+                start: "top 85%",
+                end: "bottom 55%",
+                scrub: 1,
+              },
+            });
+            const mxnCard = flow.querySelector(".flow-card-left");
+            const cryptoCard = flow.querySelector(".flow-card-right");
+            const hexCenter = flow.querySelector(".flow-center");
+            if (mxnCard && cryptoCard && hexCenter) {
+              flowTl.from(mxnCard, { autoAlpha: 0, y: 20, duration: 1 });
+              flowTl.from(
+                hexCenter,
+                { autoAlpha: 0, scale: 0.8, rotation: -30, duration: 1 },
+                "-=0.7"
+              );
+              flowTl.from(
+                cryptoCard,
+                { autoAlpha: 0, y: 20, duration: 1 },
+                "-=0.7"
+              );
+            }
+          }
+
+          // Service cards grid
+          const cardTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: grid,
+              start: "top 88%",
+              end: "center center",
+              scrub: 1,
+            },
+          });
+          cardTl.from(grid.children, {
+            autoAlpha: 0,
+            y: 20,
+            stagger: 0.04,
+            duration: 0.8,
+          });
+
+          return;
+        }
+
+        /* ── Desktop: pinned fullscreen scrub ── */
+        if (isDesktop) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=160vh",
+              pin: true,
+              anticipatePin: 1,
+              scrub: 1,
+            },
+          });
+
+          // 0-0.05: Label
+          const label = header.querySelector(".services-label");
+          if (label) {
+            tl.from(label, { autoAlpha: 0, y: -20, duration: 0.05 }, 0);
+          }
+
+          // 0.03-0.2: Word-by-word heading
+          if (heading) {
+            const words = heading.querySelectorAll(".scroll-word");
+            if (words.length) {
+              words.forEach((word, i) => {
+                tl.to(
+                  word,
+                  {
+                    y: 0,
+                    autoAlpha: 1,
+                    duration: 0.03,
+                    ease: "power2.out",
+                  },
+                  0.03 + i * (0.17 / words.length)
+                );
+              });
+            }
+          }
+
+          // 0.18-0.26: Subtitle
+          const subtitle = header.querySelector(".services-subtitle");
+          if (subtitle) {
+            tl.from(
+              subtitle,
+              { autoAlpha: 0, y: 20, filter: "blur(3px)", duration: 0.08 },
+              0.18
+            );
+          }
+
+          // 0.26-0.5: ExchangeFlow dramatic entrance
+          if (flow) {
+            const mxnCard = flow.querySelector(".flow-card-left");
+            const cryptoCard = flow.querySelector(".flow-card-right");
+            const hexCenter = flow.querySelector(".flow-center");
+            if (mxnCard && cryptoCard && hexCenter) {
+              tl.from(
+                mxnCard,
+                {
+                  autoAlpha: 0,
+                  x: -100,
+                  rotateY: 20,
+                  scale: 0.8,
+                  duration: 0.12,
+                },
+                0.26
+              );
+              tl.from(
+                hexCenter,
+                {
+                  autoAlpha: 0,
+                  scale: 0,
+                  rotation: -120,
+                  duration: 0.12,
+                  ease: "elastic.out(1, 0.5)",
+                },
+                0.33
+              );
+              tl.from(
+                cryptoCard,
+                {
+                  autoAlpha: 0,
+                  x: 100,
+                  rotateY: -20,
+                  scale: 0.8,
+                  duration: 0.12,
+                },
+                0.33
+              );
+            }
+          }
+
+          // 0.5-0.92: Service cards stagger
+          const cards = Array.from(grid.children);
+          cards.forEach((card, i) => {
+            tl.from(
+              card,
+              {
+                autoAlpha: 0,
+                y: 60,
+                rotateX: 15,
+                scale: 0.9,
+                duration: 0.1,
+                ease: "back.out(1.2)",
+              },
+              0.5 + i * 0.05
+            );
+          });
         }
       }
+    );
 
-      const cardTl = gsap.timeline({
-        scrollTrigger: { trigger: grid, start: "top 90%", end: "center center", scrub: 1 },
-      });
-      cardTl.from(grid.children, { opacity: 0, y: 20, stagger: 0.05, duration: 0.8 });
-
-      return () => {
-        headerTl.scrollTrigger?.kill(); headerTl.kill();
-        cardTl.scrollTrigger?.kill(); cardTl.kill();
-      };
-    }
-
-    // Desktop: pinned fullscreen
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=150vh",
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
-      },
-    });
-
-    // 0-0.05: Label
-    const label = header.querySelector(".services-label");
-    if (label) {
-      tl.from(label, { opacity: 0, y: 20, duration: 0.05 }, 0);
-    }
-
-    // 0.03-0.2: Word-by-word heading
-    if (heading) {
-      const words = heading.querySelectorAll(".scroll-word");
-      if (words.length) {
-        words.forEach((word, i) => {
-          tl.to(word, {
-            y: 0, opacity: 1, duration: 0.03, ease: "power2.out",
-          }, 0.03 + i * (0.17 / words.length));
-        });
-      }
-    }
-
-    // 0.18-0.25: Subtitle
-    const subtitle = header.querySelector(".services-subtitle");
-    if (subtitle) {
-      tl.from(subtitle, { opacity: 0, y: 20, duration: 0.08 }, 0.18);
-    }
-
-    // 0.25-0.5: ExchangeFlow dramatic entrance
-    if (flow) {
-      const mxnCard = flow.querySelector(".flow-card-left");
-      const cryptoCard = flow.querySelector(".flow-card-right");
-      const hexCenter = flow.querySelector(".flow-center");
-      if (mxnCard && cryptoCard && hexCenter) {
-        tl.from(mxnCard, { opacity: 0, x: -120, rotateY: 30, scale: 0.7, duration: 0.12 }, 0.25);
-        tl.from(hexCenter, { opacity: 0, scale: 0, rotate: -180, duration: 0.12, ease: "elastic.out(1, 0.6)" }, 0.32);
-        tl.from(cryptoCard, { opacity: 0, x: 120, rotateY: -30, scale: 0.7, duration: 0.12 }, 0.32);
-      }
-    }
-
-    // 0.5-0.9: Service cards stagger
-    const cards = Array.from(grid.children);
-    cards.forEach((card, i) => {
-      tl.from(card, {
-        opacity: 0, y: 50, rotateY: i % 2 === 0 ? 25 : -25, duration: 0.1,
-      }, 0.5 + i * 0.06);
-    });
-
-    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+    return () => mm.revert();
   }, []);
 
   return (

@@ -36,217 +36,260 @@ export default function Hero() {
     const trust = trustRef.current;
     if (!section || !content) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const mm = gsap.matchMedia();
 
-    if (prefersReduced) {
-      gsap.set(content.children, { opacity: 1, y: 0 });
-      return;
-    }
+    mm.add(
+      {
+        isDesktop: "(min-width: 769px)",
+        isMobile: "(max-width: 768px)",
+        reduceMotion: "(prefers-reduced-motion: reduce)",
+      },
+      (context) => {
+        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-    const isMobile = window.innerWidth <= 768;
-
-    // ═══ Entrance animation ═══
-    if (isMobile) {
-      const entranceTl = gsap.timeline({ delay: 0.3 });
-      entranceTl.from(content.children, {
-        opacity: 0,
-        y: 20,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power3.out",
-      });
-    } else {
-      const entranceTl = gsap.timeline({ delay: 0.3 });
-
-      if (badge) {
-        entranceTl.from(badge, {
-          opacity: 0,
-          y: -40,
-          filter: "blur(10px)",
-          duration: 0.6,
-          ease: "power3.out",
-        });
-      }
-
-      if (heading) {
-        entranceTl.from(
-          heading,
-          {
-            opacity: 0,
-            y: 60,
-            rotateX: -15,
-            duration: 0.8,
-            ease: "power3.out",
-          },
-          "-=0.2"
-        );
-
-        const gradientSpan = heading.querySelector(".gradient-text");
-        if (gradientSpan) {
-          entranceTl.from(
-            gradientSpan,
-            {
-              clipPath: "inset(0 100% 0 0)",
-              duration: 1.0,
-              ease: "power4.out",
-            },
-            "-=0.4"
+        // ═══ Reduced motion: make everything visible instantly ═══
+        if (reduceMotion) {
+          gsap.set(
+            [badge, heading, subtitle, buttons, trust, scrollIndicator].filter(
+              Boolean
+            ),
+            { autoAlpha: 1, y: 0, scale: 1, filter: "none", clearProps: "all" }
           );
+          if (buttons) {
+            gsap.set(buttons.children, { autoAlpha: 1, y: 0, scale: 1 });
+          }
+          if (trust) {
+            gsap.set(trust.children, { autoAlpha: 1, y: 0 });
+          }
+          return;
         }
-      }
 
-      if (subtitle) {
-        entranceTl.from(
-          subtitle,
-          {
-            opacity: 0,
-            y: 30,
+        // ═══════════════════════════════════════════════════════════
+        //  DESKTOP ANIMATIONS
+        // ═══════════════════════════════════════════════════════════
+        if (isDesktop) {
+          // --- Entrance Timeline ---
+          const entranceTl = gsap.timeline({ delay: 0.3 });
+
+          // 1. Badge drops in with blur dissolve
+          if (badge) {
+            entranceTl.from(badge, {
+              y: -30,
+              autoAlpha: 0,
+              filter: "blur(8px)",
+              duration: 0.6,
+              ease: "power3.out",
+            });
+          }
+
+          // 2. Heading — main text sweeps up with subtle 3D tilt
+          if (heading) {
+            entranceTl.from(
+              heading,
+              {
+                y: 60,
+                autoAlpha: 0,
+                rotateX: -10,
+                duration: 0.9,
+                ease: "power4.out",
+              },
+              "-=0.2"
+            );
+
+            // Gradient span reveals via clipPath wipe
+            const gradientSpan = heading.querySelector(".gradient-text");
+            if (gradientSpan) {
+              entranceTl.from(
+                gradientSpan,
+                {
+                  clipPath: "inset(0 100% 0 0)",
+                  duration: 1.2,
+                  ease: "power4.out",
+                },
+                "<0.3"
+              );
+            }
+          }
+
+          // 3. Subtitle fades up with soft blur
+          if (subtitle) {
+            entranceTl.from(
+              subtitle,
+              {
+                autoAlpha: 0,
+                y: 25,
+                filter: "blur(4px)",
+                duration: 0.7,
+                ease: "power3.out",
+              },
+              "-=0.4"
+            );
+          }
+
+          // 4. Buttons pop in with elastic spring
+          if (buttons) {
+            entranceTl.from(
+              buttons.children,
+              {
+                autoAlpha: 0,
+                y: 20,
+                scale: 0.9,
+                stagger: 0.12,
+                duration: 0.6,
+                ease: "back.out(1.7)",
+              },
+              "-=0.3"
+            );
+          }
+
+          // 5. Trust badges cascade in
+          if (trust) {
+            entranceTl.from(
+              trust.children,
+              {
+                autoAlpha: 0,
+                y: 10,
+                stagger: 0.06,
+                duration: 0.4,
+                ease: "power3.out",
+              },
+              "-=0.2"
+            );
+          }
+
+          // 6. Scroll indicator appears after everything settles
+          if (scrollIndicator) {
+            entranceTl.from(
+              scrollIndicator,
+              {
+                autoAlpha: 0,
+                y: -10,
+                duration: 0.5,
+                ease: "power2.out",
+              },
+              "+=0.2"
+            );
+          }
+
+          // --- Pin + Cinematic Scroll-Away ---
+          const pinTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=60vh",
+              pin: true,
+              anticipatePin: 1,
+              scrub: 0.8,
+            },
+          });
+
+          // Content dissolves with depth + blur
+          pinTl.to(content, {
+            autoAlpha: 0,
+            scale: 0.85,
+            y: -60,
+            rotateX: 5,
             filter: "blur(6px)",
-            duration: 0.7,
-            ease: "power3.out",
-          },
-          "-=0.5"
-        );
-      }
+            ease: "none",
+          });
 
-      if (buttons) {
-        entranceTl.from(
-          buttons.children,
-          {
-            opacity: 0,
-            scale: 0.5,
-            duration: 0.6,
-            stagger: 0.1,
-            ease: "elastic.out(1, 0.5)",
-          },
-          "-=0.3"
-        );
-      }
+          // Orbital rings drift away in parallel
+          if (orbital) {
+            pinTl.to(
+              orbital,
+              {
+                y: -40,
+                scale: 0.92,
+                autoAlpha: 0,
+                ease: "none",
+              },
+              0
+            );
+          }
 
-      if (trust) {
-        entranceTl.from(
-          trust.children,
-          {
-            opacity: 0,
-            y: 15,
-            duration: 0.4,
+          // Glow orbs scatter at different speeds
+          const glowOrbs = section.querySelectorAll(".hero-glow-orb");
+          glowOrbs.forEach((orb, i) => {
+            pinTl.to(
+              orb,
+              {
+                y: -60 * (i + 1),
+                autoAlpha: 0,
+                ease: "none",
+              },
+              0
+            );
+          });
+
+          // Scroll indicator fades out over first 10% of scroll
+          if (scrollIndicator) {
+            ScrollTrigger.create({
+              trigger: section,
+              start: "top top",
+              end: "10% top",
+              scrub: true,
+              onUpdate: (self) => {
+                gsap.set(scrollIndicator, {
+                  autoAlpha: 1 - self.progress,
+                });
+              },
+            });
+          }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  MOBILE ANIMATIONS
+        // ═══════════════════════════════════════════════════════════
+        if (isMobile) {
+          // --- Mobile Entrance: simple stagger ---
+          gsap.from(content.children, {
+            autoAlpha: 0,
+            y: 20,
             stagger: 0.08,
+            duration: 0.5,
+            delay: 0.3,
             ease: "power3.out",
-          },
-          "-=0.2"
-        );
-      }
-    }
+          });
 
-    // ═══ Pin + Dramatic scroll-away ═══
-    if (!isMobile) {
-      const pinTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "+=50vh",
-          pin: true,
-          anticipatePin: 1,
-          scrub: 0.5,
-        },
-      });
+          // --- Mobile Scroll-Away ---
+          const scrollAwayTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "bottom top",
+              scrub: 0.5,
+            },
+          });
 
-      pinTl.to(content, {
-        opacity: 0,
-        scale: 0.8,
-        y: -80,
-        rotateX: 8,
-        filter: "blur(8px)",
-        ease: "none",
-      });
-
-      if (orbital) {
-        pinTl.to(
-          orbital,
-          {
-            y: -50,
-            rotateX: 15,
-            scale: 0.9,
-            opacity: 0,
+          scrollAwayTl.to(content, {
+            autoAlpha: 0,
+            y: -20,
             ease: "none",
-          },
-          0
-        );
+          });
+
+          // Scroll indicator fade on mobile too
+          if (scrollIndicator) {
+            ScrollTrigger.create({
+              trigger: section,
+              start: "top top",
+              end: "15% top",
+              scrub: true,
+              onUpdate: (self) => {
+                gsap.set(scrollIndicator, {
+                  autoAlpha: 1 - self.progress,
+                });
+              },
+            });
+          }
+        }
+
+        // matchMedia cleanup — kills all tweens/ScrollTriggers in this context
+        return () => {};
       }
+    );
 
-      const glowOrbs = section.querySelectorAll(".hero-glow-orb");
-      glowOrbs.forEach((orb, i) => {
-        pinTl.to(
-          orb,
-          {
-            y: -80 - i * 30,
-            scale: 0.7 + i * 0.1,
-            opacity: 0,
-            ease: "none",
-          },
-          0
-        );
-      });
-
-      // Scroll indicator fades on scroll start
-      if (scrollIndicator) {
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top top",
-          end: "15% top",
-          scrub: true,
-          onUpdate: (self) => {
-            gsap.set(scrollIndicator, { opacity: 1 - self.progress });
-          },
-        });
-      }
-
-      return () => {
-        pinTl.scrollTrigger?.kill();
-        pinTl.kill();
-        ScrollTrigger.getAll().forEach((t) => {
-          if (t.trigger === section) t.kill();
-        });
-      };
-    } else {
-      // Mobile: simple scroll-away
-      const scrollAwayTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "bottom top",
-          scrub: 0.5,
-        },
-      });
-
-      scrollAwayTl.to(content, {
-        opacity: 0,
-        y: -30,
-        ease: "none",
-      });
-
-      if (scrollIndicator) {
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top top",
-          end: "15% top",
-          scrub: true,
-          onUpdate: (self) => {
-            gsap.set(scrollIndicator, { opacity: 1 - self.progress });
-          },
-        });
-      }
-
-      return () => {
-        scrollAwayTl.scrollTrigger?.kill();
-        scrollAwayTl.kill();
-        ScrollTrigger.getAll().forEach((t) => {
-          if (t.trigger === section) t.kill();
-        });
-      };
-    }
+    // Master cleanup: revert all matchMedia contexts
+    return () => mm.revert();
   }, []);
 
   return (

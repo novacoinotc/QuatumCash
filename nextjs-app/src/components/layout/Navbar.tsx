@@ -1,14 +1,49 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import { NAV_LINKS } from "@/lib/constants";
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const nav = navRef.current;
+    if (!nav) return;
+
+    // Entrance animation
+    gsap.from(nav, {
+      y: -100,
+      autoAlpha: 0,
+      duration: 0.8,
+      delay: 0.1,
+      ease: "power3.out",
+    });
+
+    // Smart show/hide on scroll + scrolled state
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const isScrolled = currentY > 50;
+
+      // Add/remove scrolled class for backdrop blur
+      nav.classList.toggle("scrolled", isScrolled);
+
+      // Hide on scroll down, show on scroll up (only after 300px)
+      if (currentY > 300) {
+        if (currentY > lastScrollY.current + 5) {
+          gsap.to(nav, { y: -100, duration: 0.3, ease: "power2.in", overwrite: true });
+        } else if (currentY < lastScrollY.current - 5) {
+          gsap.to(nav, { y: 0, duration: 0.3, ease: "power2.out", overwrite: true });
+        }
+      } else {
+        gsap.to(nav, { y: 0, duration: 0.3, ease: "power2.out", overwrite: true });
+      }
+
+      lastScrollY.current = currentY;
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -37,7 +72,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
+    <nav ref={navRef} className="navbar">
       <div className="mx-auto flex max-w-[var(--container-max)] items-center justify-between px-6">
         <a href="#" className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--blue)] via-[var(--purple)] to-[var(--pink)] font-[var(--font-primary)] text-sm font-bold text-white">

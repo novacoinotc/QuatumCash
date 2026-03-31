@@ -19,78 +19,142 @@ export default function Stats() {
     const heading = headingRef.current;
     if (!section || !header || !grid) return;
 
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const isMobile = window.innerWidth <= 768;
+    const mm = gsap.matchMedia();
 
-    if (prefersReduced) {
-      gsap.set([header, ...Array.from(grid.children)], { opacity: 1, y: 0 });
-      if (heading) gsap.set(heading.querySelectorAll(".scroll-word"), { y: 0, opacity: 1 });
-      return;
-    }
-
-    if (isMobile) {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          end: "center center",
-          scrub: 1,
-        },
-      });
-
-      tl.from(header, { opacity: 0, y: 20, duration: 1 });
-      tl.from(grid.children, { opacity: 0, y: 20, scale: 0.9, stagger: 0.05, duration: 0.8 }, "-=0.5");
-
-      return () => { tl.scrollTrigger?.kill(); tl.kill(); };
-    }
-
-    // Desktop: pinned fullscreen
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top top",
-        end: "+=120vh",
-        pin: true,
-        anticipatePin: 1,
-        scrub: 1,
+    mm.add(
+      {
+        isDesktop: "(min-width: 769px)",
+        isMobile: "(max-width: 768px)",
+        reduceMotion: "(prefers-reduced-motion: reduce)",
       },
-    });
+      (context) => {
+        const { isDesktop, isMobile, reduceMotion } = context.conditions!;
 
-    // 0-0.1: Label
-    const label = header.querySelector(".stats-label");
-    if (label) {
-      tl.from(label, { opacity: 0, y: 20, duration: 0.1 }, 0);
-    }
+        const cards = grid.children;
+        const label = header.querySelector(".stats-label");
 
-    // 0.05-0.35: Word-by-word heading
-    if (heading) {
-      const words = heading.querySelectorAll(".scroll-word");
-      if (words.length) {
-        words.forEach((word, i) => {
-          tl.to(word, {
-            y: 0,
-            opacity: 1,
-            duration: 0.04,
-            ease: "power2.out",
-          }, 0.05 + i * (0.3 / words.length));
-        });
+        // Reduced motion: make everything visible, no animation
+        if (reduceMotion) {
+          gsap.set(header, { autoAlpha: 1, y: 0 });
+          gsap.set(cards, { autoAlpha: 1, y: 0, scale: 1, rotateX: 0 });
+          if (label) gsap.set(label, { autoAlpha: 1, y: 0 });
+          if (heading) {
+            gsap.set(heading.querySelectorAll(".scroll-word"), {
+              y: 0,
+              autoAlpha: 1,
+            });
+          }
+          return;
+        }
+
+        if (isMobile) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top 85%",
+              end: "center center",
+              scrub: 1,
+            },
+          });
+
+          tl.from(header, { autoAlpha: 0, y: 20, duration: 1 });
+          tl.from(
+            cards,
+            {
+              autoAlpha: 0,
+              y: 25,
+              scale: 0.95,
+              stagger: 0.04,
+              duration: 0.8,
+            },
+            "-=0.5"
+          );
+          return;
+        }
+
+        // Desktop: pinned fullscreen
+        if (isDesktop) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=130vh",
+              pin: true,
+              anticipatePin: 1,
+              scrub: 1,
+            },
+          });
+
+          // 0-0.08: Label
+          if (label) {
+            tl.from(
+              label,
+              { autoAlpha: 0, y: -20, duration: 0.08 },
+              0
+            );
+          }
+
+          // 0.05-0.35: Word-by-word heading
+          if (heading) {
+            const words = heading.querySelectorAll(".scroll-word");
+            if (words.length) {
+              words.forEach((word, i) => {
+                const pos = 0.05 + i * (0.3 / words.length);
+                tl.to(
+                  word,
+                  {
+                    y: 0,
+                    autoAlpha: 1,
+                    duration: 0.04,
+                    ease: "power2.out",
+                  },
+                  pos
+                );
+              });
+            }
+          }
+
+          // 0.4-0.9: Cards 3D entrance
+          tl.from(
+            cards,
+            {
+              autoAlpha: 0,
+              y: 80,
+              rotateX: 25,
+              scale: 0.8,
+              stagger: 0.06,
+              duration: 0.15,
+              ease: "back.out(1.2)",
+            },
+            0.4
+          );
+
+          // After scrub timeline completes, add subtle floating to each card
+          // Use onComplete on the ScrollTrigger to start the float loops
+          const floatTweens: gsap.core.Tween[] = [];
+
+          tl.eventCallback("onComplete", () => {
+            Array.from(cards).forEach((card) => {
+              const tween = gsap.to(card, {
+                y: `random(-4, 4)`,
+                duration: `random(2, 3.5)`,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut",
+              });
+              floatTweens.push(tween);
+            });
+          });
+
+          // Clean up float tweens when context reverts
+          return () => {
+            floatTweens.forEach((t) => t.kill());
+          };
+        }
       }
-    }
+    );
 
-    // 0.4-0.85: Cards 3D flip-in
-    tl.from(grid.children, {
-      opacity: 0,
-      rotateX: 45,
-      scale: 0.7,
-      y: 60,
-      stagger: 0.08,
-      duration: 0.2,
-      ease: "back.out(1.2)",
-    }, 0.4);
-
-    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+    return () => mm.revert();
   }, []);
 
   return (

@@ -1,14 +1,18 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { gsap } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 export default function AmbientGlow() {
   const ref = useRef<HTMLDivElement>(null);
+  const orb1Ref = useRef<HTMLDivElement>(null);
+  const orb2Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    const orb1 = orb1Ref.current;
+    const orb2 = orb2Ref.current;
+    if (!el || !orb1 || !orb2) return;
 
     const prefersReduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -16,8 +20,8 @@ export default function AmbientGlow() {
 
     if (prefersReduced) return;
 
-    // Animate the glow position based on scroll progress through the page
-    const tween = gsap.to(el, {
+    // Main glow follows scroll
+    const mainTween = gsap.to(el, {
       backgroundPosition: "50% 70%",
       ease: "none",
       scrollTrigger: {
@@ -28,9 +32,56 @@ export default function AmbientGlow() {
       },
     });
 
+    // Floating orbs — subtle ambient movement
+    const orb1Tl = gsap.timeline({ repeat: -1, yoyo: true });
+    orb1Tl.to(orb1, {
+      x: 60,
+      y: -40,
+      scale: 1.15,
+      duration: 8,
+      ease: "sine.inOut",
+    }).to(orb1, {
+      x: -30,
+      y: 30,
+      scale: 0.9,
+      duration: 10,
+      ease: "sine.inOut",
+    });
+
+    const orb2Tl = gsap.timeline({ repeat: -1, yoyo: true });
+    orb2Tl.to(orb2, {
+      x: -50,
+      y: 50,
+      scale: 1.2,
+      duration: 12,
+      ease: "sine.inOut",
+    }).to(orb2, {
+      x: 40,
+      y: -20,
+      scale: 0.85,
+      duration: 9,
+      ease: "sine.inOut",
+    });
+
+    // Color shift based on scroll section
+    const colorTween = gsap.to(el, {
+      "--glow-hue": 280,
+      ease: "none",
+      scrollTrigger: {
+        trigger: document.body,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 3,
+      },
+    });
+
     return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
+      mainTween.scrollTrigger?.kill();
+      mainTween.kill();
+      colorTween.scrollTrigger?.kill();
+      colorTween.kill();
+      orb1Tl.kill();
+      orb2Tl.kill();
     };
   }, []);
 
@@ -45,6 +96,26 @@ export default function AmbientGlow() {
         backgroundPosition: "50% 30%",
       }}
       aria-hidden="true"
-    />
+    >
+      {/* Floating ambient orbs */}
+      <div
+        ref={orb1Ref}
+        className="absolute left-1/4 top-1/3 h-[500px] w-[500px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(79,70,229,0.04) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+      />
+      <div
+        ref={orb2Ref}
+        className="absolute right-1/4 bottom-1/3 h-[400px] w-[400px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(236,72,153,0.03) 0%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+      />
+    </div>
   );
 }
