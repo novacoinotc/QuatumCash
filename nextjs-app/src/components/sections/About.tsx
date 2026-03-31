@@ -203,27 +203,63 @@ export default function About() {
       };
     });
 
-    /* ── Mobile: stacked panels with simple scroll-reveals ── */
+    /* ── Mobile: stacked panels with rich scroll-reveals ── */
     mm.add("(max-width: 768px)", () => {
       const panels = track.querySelectorAll<HTMLElement>(".hscroll-panel");
 
-      panels.forEach((panel) => {
-        const children = panel.querySelectorAll(
-          ".eyebrow, h2, .about-paragraph, .feature-card, .phone-wrapper, .trust-text"
-        );
+      panels.forEach((panel, panelIdx) => {
+        // Text elements: slide up with blur
+        const textEls = panel.querySelectorAll(".eyebrow, h2, .about-paragraph, .trust-text");
+        if (textEls.length) {
+          gsap.from(textEls, {
+            autoAlpha: 0,
+            y: 30,
+            filter: "blur(3px)",
+            stagger: STAGGER.small,
+            duration: DUR.base,
+            ease: EASE.enter,
+            scrollTrigger: {
+              trigger: panel,
+              start: "top 85%",
+              toggleActions: "play none none reset",
+            },
+          });
+        }
 
-        gsap.from(children, {
-          autoAlpha: 0,
-          y: 40,
-          stagger: STAGGER.small,
-          duration: DUR.base,
-          ease: EASE.enterSoft,
-          scrollTrigger: {
-            trigger: panel,
-            start: "top 80%",
-            toggleActions: "play none none reset",
-          },
-        });
+        // Feature cards: scale + stagger with spring
+        const cards = panel.querySelectorAll(".feature-card");
+        if (cards.length) {
+          gsap.from(cards, {
+            autoAlpha: 0,
+            y: 40,
+            scale: 0.92,
+            stagger: STAGGER.medium,
+            duration: DUR.base,
+            ease: EASE.spring,
+            scrollTrigger: {
+              trigger: panel,
+              start: "top 80%",
+              toggleActions: "play none none reset",
+            },
+          });
+        }
+
+        // Phone mockup: scale entrance
+        const phone = panel.querySelector(".phone-wrapper");
+        if (phone) {
+          gsap.from(phone, {
+            autoAlpha: 0,
+            scale: 0.85,
+            y: 30,
+            duration: DUR.slow,
+            ease: EASE.enter,
+            scrollTrigger: {
+              trigger: panel,
+              start: "top 80%",
+              toggleActions: "play none none reset",
+            },
+          });
+        }
       });
     });
 

@@ -107,25 +107,29 @@ export default function Services() {
           return;
         }
 
-        /* ── Mobile: simple stagger reveal ── */
+        /* ── Mobile: rich stagger reveal ── */
         if (isMobile) {
+          // Header with blur dissolve
           gsap.from(header, {
             autoAlpha: 0,
-            y: 30,
+            y: 25,
+            filter: "blur(3px)",
             duration: DUR.base,
-            ease: EASE.enterSoft,
+            ease: EASE.enter,
             scrollTrigger: {
               trigger: header,
-              start: "top 90%",
+              start: "top 88%",
             },
           });
 
+          // Cards cascade with scale + spring
           gsap.from(cards, {
             autoAlpha: 0,
-            y: 60,
+            y: 40,
+            scale: 0.93,
             stagger: STAGGER.small,
             duration: DUR.base,
-            ease: EASE.enterSoft,
+            ease: EASE.spring,
             scrollTrigger: {
               trigger: grid,
               start: "top 85%",

@@ -36,8 +36,15 @@ export default function Contact() {
         [orb1, orb2, eyebrow, heading, desc, buttons, details].filter(Boolean),
         { autoAlpha: 1, y: 0, scale: 1 }
       );
+      if (buttons) gsap.set(buttons.children, { autoAlpha: 1, y: 0, scale: 1 });
+      if (details) gsap.set(details.children, { autoAlpha: 1, y: 0 });
       return;
     }
+
+    // Hide elements before animation (GSAP controls visibility, not inline styles)
+    gsap.set([orb1, orb2, eyebrow, desc].filter(Boolean), { autoAlpha: 0 });
+    if (buttons) gsap.set(buttons.children, { autoAlpha: 0 });
+    if (details) gsap.set(details.children, { autoAlpha: 0 });
 
     // Split heading into words for word-by-word animation
     const headingText = heading.textContent || "";
@@ -45,7 +52,7 @@ export default function Contact() {
       .split(" ")
       .map(
         (word) =>
-          `<span class="inline-block overflow-hidden"><span class="contact-word inline-block" style="visibility:hidden">${word}</span></span>`
+          `<span class="inline-block overflow-hidden"><span class="contact-word inline-block">${word}</span></span>`
       )
       .join(" ");
     const words = heading.querySelectorAll(".contact-word");
@@ -264,7 +271,7 @@ export default function Contact() {
           style={{
             background:
               "radial-gradient(circle, rgba(0,240,255,0.14) 0%, rgba(0,240,255,0.04) 40%, transparent 70%)",
-            visibility: "hidden",
+
           }}
         />
         <div
@@ -273,7 +280,7 @@ export default function Contact() {
           style={{
             background:
               "radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(139,92,246,0.03) 40%, transparent 70%)",
-            visibility: "hidden",
+
           }}
         />
       </div>
@@ -285,7 +292,6 @@ export default function Contact() {
           <span
             ref={eyebrowRef}
             className="eyebrow mb-4 inline-block"
-            style={{ visibility: "hidden" }}
           >
             <span className="eyebrow-line" />
             Comienza Hoy
@@ -303,7 +309,6 @@ export default function Contact() {
           <p
             ref={descRef}
             className="mx-auto mb-10 max-w-lg text-lg text-[var(--gray-400)]"
-            style={{ visibility: "hidden" }}
           >
             Escribeme por WhatsApp y recibe una cotizacion personalizada en
             menos de 2 minutos. Sin compromisos, sin letras chiquitas.
@@ -319,8 +324,7 @@ export default function Contact() {
               target="_blank"
               rel="noopener"
               size="lg"
-              style={{ visibility: "hidden" }}
-            >
+              >
               <svg
                 width="24"
                 height="24"
@@ -337,8 +341,7 @@ export default function Contact() {
               rel="noopener"
               variant="outline"
               size="lg"
-              style={{ visibility: "hidden" }}
-            >
+              >
               Conocer NovaCoin
               <svg
                 width="16"
@@ -360,7 +363,7 @@ export default function Contact() {
             ref={detailsRef}
             className="flex flex-col items-center gap-3 text-sm text-[var(--gray-400)]"
           >
-            <div className="flex items-center gap-3" style={{ visibility: "hidden" }}>
+            <div className="flex items-center gap-3">
               <svg
                 width="18"
                 height="18"
@@ -375,7 +378,7 @@ export default function Contact() {
               </svg>
               contacto@quantumcash.mx
             </div>
-            <div className="flex items-center gap-3" style={{ visibility: "hidden" }}>
+            <div className="flex items-center gap-3">
               <svg
                 width="18"
                 height="18"

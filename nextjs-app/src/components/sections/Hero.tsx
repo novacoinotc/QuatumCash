@@ -273,67 +273,69 @@ export default function Hero() {
             });
           }
 
-          // Heading words
+          // Heading words — scale + y for depth feel
           if (wordSpans && wordSpans.length > 0) {
-            gsap.set(wordSpans, { autoAlpha: 0, y: 15 });
+            gsap.set(wordSpans, { autoAlpha: 0, y: 20, scale: 0.95 });
             mobileTl.to(
               wordSpans,
               {
                 autoAlpha: 1,
                 y: 0,
-                duration: DUR.slow,
+                scale: 1,
+                duration: DUR.base,
                 ease: EASE.enter,
-                stagger: 0.06,
+                stagger: 0.04,
               },
-              "-=0.4"
+              "-=0.3"
             );
           }
 
-          // Subtitle
+          // Subtitle — slight blur dissolve
           if (subtitle) {
-            gsap.set(subtitle, { autoAlpha: 0, y: 10 });
+            gsap.set(subtitle, { autoAlpha: 0, y: 15, filter: "blur(4px)" });
             mobileTl.to(
               subtitle,
               {
                 autoAlpha: 1,
                 y: 0,
+                filter: "blur(0px)",
                 duration: DUR.base,
                 ease: EASE.enterSoft,
               },
-              "-=0.5"
+              "-=0.3"
             );
           }
 
-          // Buttons
+          // Buttons — spring bounce
           if (buttons) {
-            gsap.set(buttons.children, { autoAlpha: 0, y: 8, scale: 0.95 });
+            gsap.set(buttons.children, { autoAlpha: 0, y: 12, scale: 0.9 });
             mobileTl.to(
               buttons.children,
               {
                 autoAlpha: 1,
                 y: 0,
                 scale: 1,
-                stagger: 0.1,
+                stagger: 0.08,
                 duration: DUR.base,
                 ease: EASE.spring,
               },
-              "-=0.3"
+              "-=0.2"
             );
           }
 
-          // Trust badges
+          // Trust badges — pop in
           if (trust) {
-            gsap.set(trust.children, { autoAlpha: 0, y: 5 });
+            gsap.set(trust.children, { autoAlpha: 0, scale: 0.8 });
             mobileTl.to(
               trust.children,
               {
                 autoAlpha: 1,
-                y: 0,
-                stagger: STAGGER.large,
+                scale: 1,
+                stagger: STAGGER.tight,
                 duration: DUR.fast,
-                ease: EASE.enterSoft,
+                ease: EASE.elastic,
               },
-              "-=0.2"
+              "-=0.15"
             );
           }
 

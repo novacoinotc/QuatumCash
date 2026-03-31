@@ -81,15 +81,17 @@ export default function Why() {
 
         /* ── Mobile: simple reveal, line on left ── */
         if (isMobile) {
+          // Header with blur dissolve
           gsap.from(header, {
             autoAlpha: 0,
-            y: 30,
+            y: 25,
+            filter: "blur(3px)",
             duration: DUR.base,
-            ease: EASE.enterSoft,
-            scrollTrigger: { trigger: header, start: "top 90%" },
+            ease: EASE.enter,
+            scrollTrigger: { trigger: header, start: "top 88%" },
           });
 
-          /* Line grow */
+          /* Line grow — scrub driven */
           if (lineInner) {
             gsap.to(lineInner, {
               scaleY: 1,
@@ -98,28 +100,54 @@ export default function Why() {
                 trigger: container,
                 start: "top 80%",
                 end: "bottom 20%",
-                scrub: 0.8,
+                scrub: 0.5,
               },
             });
           }
 
           items.forEach((item, i) => {
+            // Item slides up with scale
             gsap.from(item, {
               autoAlpha: 0,
-              y: 50,
+              y: 35,
+              scale: 0.97,
               duration: DUR.base,
-              ease: EASE.enterSoft,
+              ease: EASE.enter,
               scrollTrigger: { trigger: item, start: "top 85%" },
             });
 
+            // Dot pops with elastic
             if (dots[i]) {
               gsap.from(dots[i], {
-                scale: 0.5,
+                scale: 0,
                 autoAlpha: 0,
-                duration: DUR.fast,
+                duration: DUR.base,
                 ease: EASE.elastic,
-                scrollTrigger: { trigger: item, start: "top 80%" },
+                scrollTrigger: { trigger: item, start: "top 82%" },
                 onComplete: () => dots[i].classList.add("active"),
+              });
+            }
+
+            // Title and desc stagger inside each item
+            const title = titleRefs.current[i];
+            const desc = descRefs.current[i];
+            if (title) {
+              gsap.from(title, {
+                autoAlpha: 0,
+                x: -15,
+                duration: DUR.fast,
+                ease: EASE.enterSoft,
+                scrollTrigger: { trigger: item, start: "top 82%" },
+              });
+            }
+            if (desc) {
+              gsap.from(desc, {
+                autoAlpha: 0,
+                y: 10,
+                duration: DUR.fast,
+                delay: 0.1,
+                ease: EASE.enterSoft,
+                scrollTrigger: { trigger: item, start: "top 82%" },
               });
             }
           });
