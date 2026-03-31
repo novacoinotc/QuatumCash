@@ -8,7 +8,7 @@ if (typeof window !== "undefined") {
 
   gsap.defaults({
     ease: "expo.out",
-    duration: 0.8,
+    duration: 0.5,
   });
 }
 

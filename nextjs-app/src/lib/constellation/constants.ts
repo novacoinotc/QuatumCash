@@ -63,8 +63,8 @@ export const PACKET_SPEED_MAX = 0.007;
 export const CAMERA_DRIFT_AMOUNT = 2;
 export const CAMERA_DRIFT_PERIOD = 15; // seconds
 
-// Clear color (matches CSS --bg-hero)
-export const CLEAR_COLOR = 0x0b0d17;
+// Clear color (matches CSS --bg)
+export const CLEAR_COLOR = 0x06060b;
 
 // Renderer
 export const MAX_PIXEL_RATIO = 2;

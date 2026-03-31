@@ -27,6 +27,19 @@
   --text-2: #A0A0B8;
   --text-3: #5A5A72;
 
+  /* Aliases (compat with v2 component refs) */
+  --border-default: var(--border);
+  --border-glow: var(--border-hover);
+  --surface-card: var(--bg-card);
+  --surface-dark: var(--bg);
+  --text-primary: var(--text-1);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--text-3);
+  --glow-primary: var(--cyan);
+  --glow-secondary: var(--violet);
+  --glow-accent: var(--mint);
+  --glow-warm: var(--warm);
+
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, var(--cyan), var(--violet));
   --gradient-cta: linear-gradient(135deg, #0891B2, #7C3AED);

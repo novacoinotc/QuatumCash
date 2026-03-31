@@ -24,7 +24,7 @@ export function createConstellationScene(
 
   const renderer = new WebGLRenderer({
     canvas,
-    alpha: true,
+    alpha: false,
     antialias: false,
   });
   renderer.setSize(width, height);

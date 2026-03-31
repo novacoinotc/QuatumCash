@@ -13,16 +13,16 @@ export const EASE = {
 } as const;
 
 export const DUR = {
-  micro: 0.2,
-  fast: 0.4,
-  base: 0.8,
-  slow: 1.4,
-  glacial: 2.0,
+  micro: 0.15,
+  fast: 0.3,
+  base: 0.5,
+  slow: 0.8,
+  glacial: 1.2,
 } as const;
 
 export const STAGGER = {
-  tight: 0.04,
-  small: 0.08,
-  medium: 0.12,
-  large: 0.06,  // for many items (chars, words)
+  tight: 0.03,
+  small: 0.05,
+  medium: 0.08,
+  large: 0.04,  // for many items (chars, words)
 } as const;

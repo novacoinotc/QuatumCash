@@ -67,7 +67,7 @@ export default function Hero() {
 
           const chars = staticLine?.querySelectorAll(".char-reveal");
 
-          const entranceTl = gsap.timeline({ delay: 0.5 });
+          const entranceTl = gsap.timeline({ delay: 0.2 });
 
           // 1. Eyebrow
           if (badge) {
@@ -260,7 +260,7 @@ export default function Hero() {
 
           const wordSpans = staticLine?.querySelectorAll(".word-reveal");
 
-          const mobileTl = gsap.timeline({ delay: 0.5 });
+          const mobileTl = gsap.timeline({ delay: 0.2 });
 
           // Eyebrow
           if (badge) {
